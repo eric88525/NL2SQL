@@ -196,7 +196,7 @@ class NL2SQL():
 
     for col,val in enumerate(agg):
       if val!=6:
-        column += pre+  f"{agg_map[val]} `{headers[0][col]}`"
+        column += pre+  f"{agg_map[val]}(`{headers[0][col]}`)"
         pre= ' ,'
     # where condition       
     pre = ''
@@ -208,6 +208,8 @@ class NL2SQL():
           values_list = extract_values_from_text(data['question']) # value from question
           if self.analyze:
             print(values_list,'number from question')
+
+
         for v in values_list:
           # format like apple > 10    
           cond = f"`{headers[0][col]}` {cond_map[val]} {str(v)}"
@@ -219,7 +221,9 @@ class NL2SQL():
             condition += pre + cond + ' '
             pre = conn_op+' '
 
-    result = f'SELECT {column} FROM `{table_name}` WHERE {condition}';    
+    result = f'SELECT {column} FROM `{table_name}`';    
+    if condition!='': 
+      result += f"WHERE {condition}"
 
     return result
   def go(self,data):
