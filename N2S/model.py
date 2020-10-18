@@ -179,24 +179,26 @@ class NL2SQL():
     pred = self.model_2(input_ids=input_ids,attention_mask=attention_mask,token_type_ids=token_type_ids).squeeze().item()
     return pred
 
-  def get_sql(self,data,m1,table):
+  def get_sql(self,data,m1,table,table_name):
    # {'agg': array([6, 4, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6]),
    # 'cond': array([4, 4, 4, 0, 0, 4, 4, 4, 4, 4, 4, 4, 4]),
    # 'conn_op': array(1)}
-    result = ''
+
     conn_map = ['','AND','OR']
     agg_map = ['','AVG','MAX','MIN','COUNT','SUM','']
     cond_map = ['>','<','=','!=','']
     agg,cond,conn_op = m1['agg'],m1['cond'],conn_map[m1['conn_op']]
     headers = data['headers']
+
     pre = ''   
-    result += "SELECT "
+    column = ''
+    condition = ''
+
     for col,val in enumerate(agg):
       if val!=6:
-        result += pre+agg_map[val]+' '+headers[0][col]
-        pre= ' , '
+        column += pre+  f"{agg_map[val]} `{headers[0][col]}`"
+        pre= ' ,'
     # where condition       
-    result += ' WHERE '
     pre = ''
     for col,val in enumerate(cond):
       if val!=4:
@@ -207,14 +209,18 @@ class NL2SQL():
           if self.analyze:
             print(values_list,'number from question')
         for v in values_list:
-          cond = headers[0][col]+cond_map[val]+str(v)
+          # format like apple > 10    
+          cond = f"`{headers[0][col]}` {cond_map[val]} {str(v)}"
+
           p = self.get_m2_output( data['question'],cond ) 
           if self.analyze:
             print(cond,p)
           if p > 0.5:
-            result += pre + cond + ' '
+            condition += pre + cond + ' '
             pre = conn_op+' '
-       
+
+    result = f'SELECT {column} FROM `{table_name}` WHERE {condition}';    
+
     return result
   def go(self,data):
     # data:
@@ -224,5 +230,5 @@ class NL2SQL():
     #   table [['上海',1,'下雨'],[],[]...]
     
     m1 = self.get_m1_output(data["question"],data["headers"])
-    result = self.get_sql(data,m1,data["table"])
+    result = self.get_sql(data,m1,data["table"],data["table_name"])
     return  result
