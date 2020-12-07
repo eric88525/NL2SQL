@@ -33,14 +33,23 @@ class DBService():
             return []
 
 
-     # 拿到table 列表    回傳 ['name1','name2' ...]
+
+
+
+     # 拿到table 列表   回傳 ['name1','name2' ...]
     def get_table_list(self):
         maxdb,cursor = self.get_connect()
         sql = f"SELECT * FROM {self.config['table_map']}"
+        #sql = "SELECT * FROM INFORMATION_SCHEMA.TABLES;"
         cursor.execute(sql)
         result = cursor.fetchall()
         result = [i[0] for i in result]
+        print(result)
         return result
+
+
+
+
 
     # 拿到表頭資訊 回傳 [(name,name...),(type,type...)]
     def get_headers(self,table_name):
@@ -62,8 +71,6 @@ class DBService():
 
     # get table column list like: [v1,v2,v3...]
     def get_columns(self,table_name,col_name):
-        
-        
         maxdb,cursor = self.get_connect()
         sql = f'SELECT `{col_name}` FROM {table_name}'
         cursor.execute(sql)
@@ -85,5 +92,5 @@ if __name__ == '__main__':
     service = DBService(config)
     print(service.get_columns('Table_43ad6bdc1d7111e988a6f40f24344a08','平均溢价率(%)'))
     #print(service.get_headers('Table_43ad6bdc1d7111e988a6f40f24344a08'))
-    #print(service.get_table('Table_43ad93211d7111e998d9f40f24344a08'))
+    print(service.get_table('table_5a4a8bcc312b11e9a932542696d6e445'))
     #print(service.get_table_list('namemap'))

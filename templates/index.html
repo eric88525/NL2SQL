@@ -1,0 +1,186 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Bootstrap Example</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+ 
+  <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet" />
+
+  <script src="{{ url_for('static', filename='js/jquery-3.5.1.min.js') }}"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+
+  <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+</head>
+<body>
+
+<div class="container p-3 my-3 bg-dark text-white">
+  <h1>自然語言轉sql指令</h1>
+  <p>方便讓任何人使用的系統</p>
+</div>
+
+
+  <div class="container ">
+    <h1>選取表格</h1>
+    <br>
+    <button id = "tableSelector" type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+      表格列表
+    </button>
+    <div class="dropdown-menu" id="tableList" >
+      <a class="dropdown-item" href="#">Link 1</a>
+      <a class="dropdown-item" href="#">Link 2</a>
+      <a class="dropdown-item" href="#">Link 3</a>
+    </div>
+  </div>
+
+  <br>
+<!--
+  <div class="container">
+    <h2>表格預覽</h2>
+    <p>The .table-striped class adds zebra-stripes to a table:</p>            
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Firstname</th>
+          <th>Lastname</th>
+          <th>Email</th>
+          <th>Email</th>
+          <th>Email</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>John</td>
+          <td>Doe</td>
+          <td>john@example.com</td>
+          <td>john@example.com</td>
+          <td>john@example.com</td>
+        </tr>
+        <tr>
+          <td>Mary</td>
+          <td>Moe</td>
+          <td>mary@example.com</td>
+          <td>john@example.com</td>
+          <td>john@example.com</td>
+        </tr>
+        <tr>
+          <td>July</td>
+          <td>Dooley</td>
+          <td>july@example.com</td>
+          <td>john@example.com</td>
+          <td>john@example.com</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>-->
+  <div class="container"  >
+    <h2>表格預覽</h2>
+    <p id = "tableName">   </p>      
+  </div>
+  <div class="container"  id = "demoTable">
+  </div>
+
+
+
+
+
+</body>
+<script type="text/javascript">
+
+
+
+  $(document).ready(function () {
+   
+    createDropDownList('http://127.0.0.1:5000/api/tablelist');
+
+
+    $(".tableItem").click(function(){
+      // 顯示你選了啥表
+      $("#tableName").text(this.id);
+      // 更新資料表
+      createTable(this.id);
+    })
+
+
+    // 建立下拉選單
+    function createDropDownList(url){
+      content = []
+      $.ajax({
+    		type: "get",
+    		url: url,
+    		dataType: "json",
+    		async: false,
+    		success: function(data) {
+    		    content = data;
+    		}
+    	});
+      $("#tableList a").remove();
+      content.forEach(element => {
+        //console.log(element)
+        var row = $("<a class='tableItem'   href='#' id='" + element.Value  +    "'></a>").addClass("dropdown-item").text(element.Text)
+        $("#tableList").append(row)
+      });  
+    }
+
+    // when select table; show the table
+    function createTable(tableId) {
+      $("#demoTable table").remove();
+      var columns = []
+      var datas = []
+  
+      $.ajax({
+    		type: "post",
+    		url:    'http://127.0.0.1:5000/api/table'  ,
+    		dataType: "json",
+        async: false,
+        data:{
+          "table_name": String(tableId)
+        },
+    		success: function(data) {
+          columns = data.columns,
+          datas = data.datas
+    		}
+    	});
+
+
+      var thead = $("<thead><tr></tr></thead>");
+      var table = $('<table></table>').addClass('table table-striped');
+      var body =  $('<tbody></tbody>')
+
+      tr  = $('<tr></tr>');
+      columns.forEach(element => {
+        //console.log(element)
+        var row = $("<th></th>").text(element.Name);
+        tr.append(row);
+      });  
+      thead.append(tr)
+
+
+      for (var i = 0; i < 10; i++) {
+        row = $('<tr></tr>');
+        for (var j = 0; j < 10; j++) {
+          var rowData = $('<td></td>').addClass('bar').text('result ' + j);
+          row.append(rowData);
+        }
+          body.append(row);
+      }
+      table.append(thead);
+      table.append(body);
+      
+      $("#demoTable table").remove();
+      debugger
+      $('#demoTable').append(table);
+      
+
+  }
+
+
+  });
+
+
+
+</script>
+
+</html>
