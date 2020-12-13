@@ -14,10 +14,10 @@ app.config["JSON_AS_ASCII"] = False
 testing = False
 
 dbService = DBService(dbConfig)   
-#modelService = ModelService(modelConfig,dbConfig)
+modelService = ModelService(modelConfig,dbConfig)
 
 tw2s = OpenCC('tw2s')
-
+s2t = OpenCC('s2t')
 
 @app.route("/")
 def index():
@@ -32,27 +32,29 @@ def get_table_list():
 
     if testing:
         table_list = ['11111111111111111','22222222222222222222','3333333333333333333']
-        result = [ {"Text": row[:3] ,"Value":row  }  for row in table_list ]
+        result = [ {"Text": row[:3] ,"Value" : row  }  for row in table_list ]
 
     return jsonify(result)
 
 @app.route("/api/table",methods=["POST"])
 def get_talbe():
 
-    
-    
     request_data = request.get_json()
+    print(request_data , 'req')
     columns = dbService.get_headers(request_data["table_name"])[0]
     rows  = dbService.get_table(request_data["table_name"])
     data = []
     for r in rows:
         temp = {}
         for i,col in enumerate(columns):
-            temp[col] = r[i]
+            temp[col] = s2t.convert(str(r[i]))
         data.append(temp)
 
-    columns = [ {"Index": i,"Name":i} for i in columns   ]
-    return jsonify( { "columns":columns,"data":data  }  )
+    columns = [ {"Index":  i,"Name":  s2t.convert(i)} for i in columns   ]
+    data =  { "columns":columns,"datas":data  }
+    print(data)
+    return jsonify( data )
+
     '''
     data = {
     "columns": [
@@ -93,7 +95,7 @@ def get_talbe():
             "Name": "本期比去年同期"
         }
     ],
-    "data": [
+    "datas": [
         {
             "10年H2": 20.8,
             "11年H1": 16.1,
@@ -294,10 +296,10 @@ def get_talbe():
         }
     ]
     }
-    '''
+    
     return jsonify(data)
 
-
+    '''
 
 
 @app.route("/api/headers",methods=["POST"])
@@ -317,8 +319,15 @@ def get_sql():
     request_data = request.get_json()
     print(request_data)
     question =tw2s.convert(request_data["question"] )
+    return jsonify("testing sql")
+'''
+@app.route("/api/sql",methods=["POST"])
+def run_sql():
+    request_data = request.get_json()
+    print(request_data)
+    question =tw2s.convert(request_data["question"] )
     result = modelService.get_sql( question   ,request_data["table_name"])
     return jsonify(result)
-'''
+
 if __name__ == '__main__':
     app.run()
