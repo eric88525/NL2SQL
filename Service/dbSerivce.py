@@ -32,10 +32,6 @@ class DBService():
         except:
             return []
 
-
-
-
-
      # 拿到table 列表   回傳 ['name1','name2' ...]
     def get_table_list(self):
         maxdb,cursor = self.get_connect()
@@ -46,9 +42,6 @@ class DBService():
         result = [i[0] for i in result]
         print(result)
         return result
-
-
-
 
 
     # 拿到表頭資訊 回傳 [(name,name...),(type,type...)]
@@ -78,7 +71,16 @@ class DBService():
         result = [i[0] for i in result]
         self.close_conn(maxdb,cursor)
         return result
-       
+
+    # run sql command
+    def exe_sql(self,sql):
+        maxdb,cursor = self.get_connect()
+        sql = str(sql)
+        cursor.execute(sql)
+        result = cursor.fetchall()
+        self.close_conn(maxdb,cursor)
+        return result
+        
           
 
 if __name__ == '__main__':
@@ -90,7 +92,11 @@ if __name__ == '__main__':
     }
 
     service = DBService(config)
-    print(service.get_columns('Table_43ad6bdc1d7111e988a6f40f24344a08','平均溢价率(%)'))
+    ss = "SELECT (`办公电话`) ,(`邮箱`) FROM `Table_43b06b7d1d7111e989d6f40f24344a08` WHERE `姓名` = \"杨涛\" "
+    print(service.exe_sql( ss) )
+    #print(service.get_columns('Table_43ad6bdc1d7111e988a6f40f24344a08','平均溢价率(%)'))
     #print(service.get_headers('Table_43ad6bdc1d7111e988a6f40f24344a08'))
-    print(service.get_table('table_5a4a8bcc312b11e9a932542696d6e445'))
+    #print(service.get_table('table_5a4a8bcc312b11e9a932542696d6e445'))
     #print(service.get_table_list('namemap'))
+
+    

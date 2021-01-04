@@ -184,6 +184,10 @@ class NL2SQL():
    # 'cond': array([4, 4, 4, 0, 0, 4, 4, 4, 4, 4, 4, 4, 4]),
    # 'conn_op': array(1)}
 
+    print("sql======================")
+    print(table)
+    print(m1)
+    print("sql======================")
     conn_map = ['','AND','OR']
     agg_map = ['','AVG','MAX','MIN','COUNT','SUM','']
     cond_map = ['>','<','=','!=','']
@@ -193,7 +197,7 @@ class NL2SQL():
     pre = ''   
     column = ''
     condition = ''
-
+    print(f"agg: {agg}")
     for col,val in enumerate(agg):
       if val!=6:
         column += pre+  f"{agg_map[val]}(`{headers[0][col]}`)"
@@ -210,20 +214,34 @@ class NL2SQL():
             print(values_list,'number from question')
 
 
+        possible_cond = []
+
         for v in values_list:
           # format like apple > 10    
-          cond = f"`{headers[0][col]}` {cond_map[val]} {str(v)}"
-
+          if data['headers'][1][col]  == 'text':
+            cond = f"`{headers[0][col]}` {cond_map[val]} \"{str(v)}\""
+          else:
+            cond = f"`{headers[0][col]}` {cond_map[val]} {str(v)}" 
           p = self.get_m2_output( data['question'],cond ) 
-          if self.analyze:
-            print(cond,p)
-          if p > 0.5:
-            condition += pre + cond + ' '
+          possible_cond.append( [ cond , p ])
+
+        print(possible_cond)
+
+        possible_cond = sorted(possible_cond , key=lambda x: x[1] ,reverse=True )
+
+        if conn_op == '':        
+          condition += pre + possible_cond[0][0] + ' '
+          pre = conn_op+' '
+        else:
+          for _cond,_p in possible_cond:
+            if _p < 0.55:
+              continue
+            condition += pre + possible_cond[0][0] + ' '
             pre = conn_op+' '
 
     result = f'SELECT {column} FROM `{table_name}`';    
     if condition!='': 
-      result += f"WHERE {condition}"
+      result += f" WHERE {condition}"
 
     return result
   def go(self,data):

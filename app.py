@@ -26,7 +26,7 @@ def index():
 
 @app.route("/api/tablelist",methods=["GET"])
 def get_table_list():
-    table_list = dbService.get_table_list()[:10]
+    table_list = dbService.get_table_list()
     result = [ {"Text": row[:15] ,"Value":row  }for row in table_list ]
 
 
@@ -313,21 +313,58 @@ def get_headers():
 
     return jsonify(result)
 
-'''
+
+
+# question -> sql
 @app.route("/api/sql",methods=["POST"])
 def get_sql():
-    request_data = request.get_json()
-    print(request_data)
-    question =tw2s.convert(request_data["question"] )
-    return jsonify("testing sql")
-'''
-@app.route("/api/sql",methods=["POST"])
+    try:
+        request_data = request.get_json()
+        print(request_data)
+        question =tw2s.convert(request_data["question"] )
+        result = modelService.get_sql( question   ,request_data["table_name"])
+        result = s2t.convert(result)
+        return jsonify(result)
+    except:
+        return jsonify("抱歉 此問題無法正確轉換")
+
+
+# execute sql command and return table
+@app.route("/api/runsql",methods=["POST"])
 def run_sql():
     request_data = request.get_json()
     print(request_data)
-    question =tw2s.convert(request_data["question"] )
-    result = modelService.get_sql( question   ,request_data["table_name"])
+    sql =tw2s.convert(str(request_data["sql"] )).replace('\n','')
+
+    # 字串比對 抽sql col
+    columns = sql[6:sql.find("FROM")].replace(')','').replace('(','').replace('`','').replace(' ','').split(',')
+    # 產生 index & name pair 
+    
+    print(f"sql {sql}")
+    # db result
+    data = []
+    rows = dbService.exe_sql( sql )
+    print(f"rows {rows}")
+    for r in rows:
+        temp = {}
+        for i,col in enumerate(columns):
+            temp[col] = s2t.convert(str(r[i]))
+        data.append(temp)
+
+    columns = [ {"Index":  i,"Name":  s2t.convert(i)} for i in columns   ]
+
+    print(columns)
+    print(data)
+
+    result =  { "columns":columns,"datas":data  }
+    #data =  { "columns":columns,"datas":data  }
     return jsonify(result)
 
 if __name__ == '__main__':
     app.run()
+
+# Table_43af76a31d7111e98e78f40f24344a08
+# Table_43b06b7d1d7111e989d6f40f24344a08
+
+
+#  SELECT (`办公电话`) ,(`邮箱`) FROM `Table_43b06b7d1d7111e989d6f40f24344a08` WHERE `姓名` = "杨涛" 
