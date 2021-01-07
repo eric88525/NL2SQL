@@ -197,10 +197,20 @@ class NL2SQL():
     pre = ''   
     column = ''
     condition = ''
+    print('===========agg===============')
     print(f"agg: {agg}")
+    print(f"cond: {cond}")
+    print(f"conn_op: {conn_op}")
+    print('=============================')
+
+
+    # SELECT 
     for col,val in enumerate(agg):
       if val!=6:
-        column += pre+  f"{agg_map[val]}(`{headers[0][col]}`)"
+        if data['headers'][1][col] == 'text':
+          column += pre+  f"(`{headers[0][col]}`)"
+        else:      
+          column += pre+  f"{agg_map[val]}(`{headers[0][col]}`)"
         pre= ' ,'
     # where condition       
     pre = ''
@@ -225,8 +235,11 @@ class NL2SQL():
           p = self.get_m2_output( data['question'],cond ) 
           possible_cond.append( [ cond , p ])
 
+        print('===========possible_cond=====')
         print(possible_cond)
-
+        print('=============================')
+        if len(possible_cond) == 0:
+              continue
         possible_cond = sorted(possible_cond , key=lambda x: x[1] ,reverse=True )
 
         if conn_op == '':        
@@ -240,9 +253,11 @@ class NL2SQL():
             pre = conn_op+' '
 
     result = f'SELECT {column} FROM `{table_name}`';    
+
     if condition!='': 
       result += f" WHERE {condition}"
 
+    print(result)
     return result
   def go(self,data):
     # data:
