@@ -246,11 +246,13 @@ class NL2SQL():
           condition += pre + possible_cond[0][0] + ' '
           pre = conn_op+' '
         else:
+          idxx = 0
           for _cond,_p in possible_cond:
             if _p < 0.55:
               continue
-            condition += pre + possible_cond[0][0] + ' '
+            condition += pre + possible_cond[idxx][0] + ' '
             pre = conn_op+' '
+            idxx += 1 
 
     result = f'SELECT {column} FROM `{table_name}`';    
 

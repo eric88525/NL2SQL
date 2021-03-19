@@ -40,7 +40,7 @@ def get_table_list():
 def get_talbe():
 
     request_data = request.get_json()
-    print(request_data , 'req')
+    #print(request_data , 'req')
     columns = dbService.get_headers(request_data["table_name"])[0]
     rows  = dbService.get_table(request_data["table_name"])
     data = []
@@ -52,7 +52,7 @@ def get_talbe():
 
     columns = [ {"Index":  i,"Name":  s2t.convert(i)} for i in columns   ]
     data =  { "columns":columns,"datas":data  }
-    print(data)
+    #print(data)
     return jsonify( data )
 
     '''
