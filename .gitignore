@@ -2,6 +2,6 @@
 */.ipynb_checkpoints
 *.ipynb
 test.py
-*/__pycache__
+*.pyc
 config.py
 *.pt
