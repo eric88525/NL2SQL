@@ -1,5 +1,7 @@
-/nlpmodel/*
+/nlpmodel/chinese_wwm_pytorch/*
+*/.ipynb_checkpoints
 *.ipynb
 test.py
 */__pycache__
 config.py
+*.pt
