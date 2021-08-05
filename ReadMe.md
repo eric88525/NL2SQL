@@ -1,6 +1,7 @@
 # NL2SQL Demo Page
 前端: 純前端 + bootstrap + AJAX<br>
 後端: flask<br>
+DB: MariaDB
 ### 主頁面
 ![](https://github.com/eric88525/NL2SQL_Service/blob/main/demo_pictures/demo2.png)
 
