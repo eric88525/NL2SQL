@@ -5,3 +5,5 @@ test.py
 *.pyc
 config.py
 *.pt
+__pycache__/*
+*-env/*

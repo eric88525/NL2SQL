@@ -10,7 +10,7 @@ import re
 class N2Sm1(nn.Module):
   def __init__(self,model_type,config):
     super(N2Sm1,self).__init__()
-    self.bert_model = BertModel.from_pretrained(model_type,config = config)
+    self.bert_model = BertModel.from_pretrained(config)
     self.cond_conn_op_decoder = nn.Linear(config.hidden_size,3)
     self.agg_deocder = nn.Linear(config.hidden_size,7)
     self.cond_op_decoder = nn.Linear(config.hidden_size,5)
@@ -142,12 +142,16 @@ class NL2SQL():
   def __init__(self,config):
     # device
     self.device = config['device']
+
     bert_config = BertConfig.from_pretrained(config['config_path'])
     self.tokenizer = BertTokenizer.from_pretrained(config['vocab_path'])
-    self.model_1 = N2Sm1(config['model_type'],bert_config).to(self.device)
-    self.model_1.load_state_dict(torch.load(config['m1_path'])) 
-    self.model_2 = N2Sm2(config['model_type'],bert_config).to(self.device)
-    self.model_2.load_state_dict(torch.load(config['m2_path']))
+
+    self.model_1 = N2Sm1(config['model_type'],bert_config)
+    self.model_1.load_state_dict(torch.load(config['m1_path'], map_location=torch.device('cpu'))).to(self.device)
+
+    self.model_2 = N2Sm2(config['model_type'],bert_config)
+    self.model_2.load_state_dict(torch.load(config['m2_path'], map_location=torch.device('cpu'))).to(self.device)
+
     self.analyze = config['analyze']
   def get_m1_output(self,question,headers):
     all_tokens = self.tokenizer.tokenize(question)

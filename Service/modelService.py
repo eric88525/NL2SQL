@@ -12,7 +12,6 @@ class ModelService():
 
     def get_sql(self,question,table_name):
 
-      
         question = re.sub('<','小于',question)
         question = re.sub('>','大于',question)
         question = re.sub('=','等于',question)
@@ -24,7 +23,7 @@ class ModelService():
 
         table = self.dbService.get_table(table_name)
         headers = self.dbService.get_headers(table_name)
-        headers[1] = [ self.type_dict[i] for i in headers[1]] 
+        headers[1] = [ self.type_dict[i] for i in headers[1]]
         data = {
             'question': question,
             'headers': headers,
@@ -34,5 +33,3 @@ class ModelService():
         result = self.model.go(data)
 
         return result
-    
-    
