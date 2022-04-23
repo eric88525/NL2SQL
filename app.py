@@ -1,12 +1,12 @@
-import flask
 from flask import jsonify,request,render_template
+from flask import Flask
 import json
 from service.dbSerivce import DBService
 from service.modelService import ModelService
 from config import modelConfig,dbConfig
 from opencc import OpenCC
 
-app = flask.Flask(__name__ )
+app = Flask(__name__ )
 app.config["DEBUG"] = True
 app.config["JSON_AS_ASCII"] = False
 

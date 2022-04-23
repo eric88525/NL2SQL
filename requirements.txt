@@ -1,8 +1,8 @@
 Flask
 torch
-transformers == 3.0.2
+transformers
 mysql-connector-python
 pandas
-sentencepieces
+sentencepiece
 cn2an
 opencc
