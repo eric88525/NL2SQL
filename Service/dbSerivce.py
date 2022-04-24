@@ -8,7 +8,6 @@ class DBService():
             'float':'real'
         }
 
-
     # get maxdb & cursor
     def get_connect(self):
         maxdb = mysql.connector.connect(
@@ -18,7 +17,7 @@ class DBService():
             database = self.config["database"],
         )
         cursor=maxdb.cursor()
-        return maxdb,cursor
+        return maxdb, cursor
 
     # 拿到單個table內容物 [(col1,col2,col3),(),()...]
     def get_table(self,table_name):
@@ -35,12 +34,11 @@ class DBService():
      # 拿到table 列表   回傳 ['name1','name2' ...]
     def get_table_list(self):
         maxdb,cursor = self.get_connect()
-        sql = f"SELECT * FROM {self.config['table_map']}"
-        #sql = "SELECT * FROM INFORMATION_SCHEMA.TABLES;"
+        # get table name list from db
+        sql = f"SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND TABLE_SCHEMA = '{self.config['database']}';"
         cursor.execute(sql)
         result = cursor.fetchall()
         result = [i[0] for i in result]
-        print(result)
         return result
 
 
@@ -92,11 +90,8 @@ if __name__ == '__main__':
     }
 
     service = DBService(config)
-    ss = "SELECT (`办公电话`) ,(`邮箱`) FROM `Table_43b06b7d1d7111e989d6f40f24344a08` WHERE `姓名` = \"杨涛\" "
-    print(service.exe_sql( ss) )
-    #print(service.get_columns('Table_43ad6bdc1d7111e988a6f40f24344a08','平均溢价率(%)'))
-    #print(service.get_headers('Table_43ad6bdc1d7111e988a6f40f24344a08'))
-    #print(service.get_table('table_5a4a8bcc312b11e9a932542696d6e445'))
-    #print(service.get_table_list('namemap'))
+    ss = "SELECT * FROM student"
+    service.get_table_list()
+
 
     

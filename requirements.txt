@@ -5,4 +5,4 @@ mysql-connector-python
 pandas
 sentencepiece
 cn2an
-opencc
+opencc-python-reimplemented
