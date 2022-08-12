@@ -1,8 +1,8 @@
-Flask
-torch
-transformers
-mysql-connector-python
-pandas
-sentencepiece
-cn2an
-opencc-python-reimplemented
+Flask==2.1.1
+torch==1.12.1
+transformers==4.18.0
+mysql-connector-python==8.0.30
+pandas==1.4.3
+sentencepiece==0.1.97
+cn2an==0.5.17
+opencc-python-reimplemented==0.1.6
