@@ -9,19 +9,22 @@ from difflib import SequenceMatcher
 
 
 class N2Sm1(nn.Module):
-    """The model that can classify columns's attribute and SQL command operator.
+    """The model that can classify columns and SQL command operator.
 
     Attributes:
         cond_conn_op_decoder: the classification layer of condition connect operator.
             Ouput size is (batch_size, 3), represent  ['', 'AND', 'OR']
 
         agg_deocder: the classification layer of the function apply on column.
-            For example: Max 'score'
-            Ouput size is (batch_size, column_counts, 7), represent ['', 'AVG', 'MAX', 'MIN', 'COUNT', 'SUM']
+            Ouput size is (batch_size, column_counts, 7)
+            SQL syntax: agg (column_name)
+            agg is in ['', 'AVG', 'MAX', 'MIN', 'COUNT', 'SUM']
 
         cond_op_decoder: the classification layer of the column operator.
-            For example: 'name' = 'eric'
-            Output size is (batch_size, column_count, 5), represent ['>', '<', '=', '!=', '']
+            Output size is (batch_size, column_count, 5)
+            SQL syntax: column_name operator value
+            For example: weight > 50
+            operator is in ['>', '<', '=', '!=', '']
     """
     def __init__(self, pretrained_model_name):
         super(N2Sm1, self).__init__()
@@ -35,10 +38,14 @@ class N2Sm1(nn.Module):
         self.cond_op_decoder = nn.Linear(config.hidden_size, 5)
 
     def get_agg_hiddens(self, hiddens, header_ids):
-        # header_ids [bsize,headers_idx]
-        # hiddens [bsize,seqlength,worddim]
+        """Get hidden states of columns
+        Args:
+            hiddens: shape = (batch_size, seq_length, word_dimention)
+            header_ids: shape = (batch_size, headers_idx)
+        """
         arr = []
-        for b_idx in range(0, hiddens.shape[0]):
+        batch_size = hiddens.shape[0]
+        for b_idx in range(batch_size):
             s = torch.stack([hiddens[b_idx][i]
                             for i in header_ids[b_idx]], dim=0)
             arr.append(s)

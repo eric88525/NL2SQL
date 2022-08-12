@@ -16,4 +16,4 @@ modelConfig = {
         'm1_path':f'{base_url}/saved_models/roberta_v1',
         'm2_path': f'{base_url}/saved_models/tiny_v2',
         'analyze':True
-        }
+}
