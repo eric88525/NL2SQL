@@ -5,11 +5,24 @@ import numpy as np
 import torch
 import torch.nn as nn
 from transformers import AutoModel, AutoConfig, AutoTokenizer
-from .methods import *
 from difflib import SequenceMatcher
 
 
 class N2Sm1(nn.Module):
+    """The model that can classify columns's attribute and SQL command operator.
+
+    Attributes:
+        cond_conn_op_decoder: the classification layer of condition connect operator.
+            Ouput size is (batch_size, 3), represent  ['', 'AND', 'OR']
+
+        agg_deocder: the classification layer of the function apply on column.
+            For example: Max 'score'
+            Ouput size is (batch_size, column_counts, 7), represent ['', 'AVG', 'MAX', 'MIN', 'COUNT', 'SUM']
+
+        cond_op_decoder: the classification layer of the column operator.
+            For example: 'name' = 'eric'
+            Output size is (batch_size, column_count, 5), represent ['>', '<', '=', '!=', '']
+    """
     def __init__(self, pretrained_model_name):
         super(N2Sm1, self).__init__()
 
@@ -21,7 +34,6 @@ class N2Sm1(nn.Module):
         self.agg_deocder = nn.Linear(config.hidden_size, 7)
         self.cond_op_decoder = nn.Linear(config.hidden_size, 5)
 
-    # 取得header_ids 所標記的 token
     def get_agg_hiddens(self, hiddens, header_ids):
         # header_ids [bsize,headers_idx]
         # hiddens [bsize,seqlength,worddim]
@@ -34,7 +46,6 @@ class N2Sm1(nn.Module):
 
     def forward(self, input_ids, attention_mask, token_type_ids, header_ids, **kwargs):
         # hidden [bsize,seqlength,worddim] cls [bsize,worddim]
-
         hiddens, cls = self.bert_model(
             input_ids=input_ids, attention_mask=attention_mask, token_type_ids=token_type_ids, return_dict=False)
 
@@ -44,18 +55,18 @@ class N2Sm1(nn.Module):
 
         agg = self.agg_deocder(header_hiddens)
         cond_op = self.cond_op_decoder(header_hiddens)
-        # cond_conn_op [bsize,3]
-        # cond_op [bize,header_length,5]
-        # agg [bize,header_length,7]
-        return cond_conn_op, cond_op, agg
 
+        return cond_conn_op, cond_op, agg
 
 class N2Sm2(nn.Module):
     def __init__(self, pretrained_model_name):
         super(N2Sm2, self).__init__()
+
         config = AutoConfig.from_pretrained(pretrained_model_name)
+
         self.bert_model = AutoModel.from_pretrained(
             pretrained_model_name, config=config)
+
         self.decoder = nn.Sequential(
             nn.LayerNorm(config.hidden_size),
             nn.Linear(config.hidden_size, config.hidden_size),
@@ -71,12 +82,11 @@ class N2Sm2(nn.Module):
             input_ids=input_ids, attention_mask=attention_mask, token_type_ids=token_type_ids, return_dict=False)
         return self.decoder(cls)
 
-# 終極版本
-
 
 class NL2SQL():
+    """The class that combine model 1 and model 2 to generate SQL commmand"""
     def __init__(self, config):
-        # device
+
         self.device = config['device']
 
         self.m1_tokenizer = AutoTokenizer.from_pretrained(
@@ -87,17 +97,24 @@ class NL2SQL():
         self.model_1 = N2Sm1(config['m1_pretrained_model_name'])
         self.model_1.load_state_dict(torch.load(
             config['m1_path'], map_location=torch.device('cpu')))
-        self.model_1.to(self.device)
 
         self.model_2 = N2Sm2(config['m2_pretrained_model_name'])
         self.model_2.load_state_dict(torch.load(
             config['m2_path'], map_location=torch.device('cpu')))
-        self.model_2.to(self.device)
 
         self.analyze = config['analyze']
 
     def get_m1_output(self, question, headers):
+        """Get model1 output
 
+        Returns:
+            A dict mapping to model 1 output. For example:
+            {
+                'agg': array([6, 4, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6]),
+                'cond': array([4, 4, 4, 0, 0, 4, 4, 4, 4, 4, 4, 4, 4]),
+                'conn_op': array(1)
+            }
+        """
         all_tokens = self.m1_tokenizer.tokenize(question)
         col_type_token_dict = {'text': '[unused11]', 'real': '[unused12]'}
 
@@ -113,23 +130,22 @@ class NL2SQL():
             if all_tokens[i] == col_type_token_dict['text'] or all_tokens[i] == col_type_token_dict['real']:
                 header_ids.append(i+1)
 
-        plus = self.m1_tokenizer.encode_plus(all_tokens, is_split_into_words=True)
+        plus = self.m1_tokenizer.encode_plus(
+            all_tokens, is_split_into_words=True)
 
-        input_ids, token_type_ids, attention_mask, header_ids = torch.tensor(plus['input_ids']).unsqueeze(0).to(self.device), torch.tensor(plus['token_type_ids']).unsqueeze(0).to(self.device),\
-            torch.tensor(plus['attention_mask']).unsqueeze(0).to(
-                self.device), torch.tensor(header_ids).unsqueeze(0).to(self.device)
-        # pred
+        input_ids = torch.tensor(plus['input_ids']).unsqueeze(0).to(self.device)
+        token_type_ids = torch.tensor(plus['token_type_ids']).unsqueeze(0).to(self.device)
+        attention_mask = torch.tensor(plus['attention_mask']).unsqueeze(0).to(self.device)
+        header_ids = torch.tensor(header_ids).unsqueeze(0).to(self.device)
+
         cond_conn_op_pred, conds_ops_pred, agg_pred = self.model_1(
             input_ids=input_ids, attention_mask=attention_mask, token_type_ids=token_type_ids, header_ids=header_ids)
-        
+
         result = {}
-        
         result['conn_op'] = torch.argmax(
             cond_conn_op_pred.squeeze(), dim=-1).to('cpu').numpy()
-        
         result['agg'] = torch.argmax(
             agg_pred.squeeze(), dim=-1).to('cpu').numpy()
-        
         result['cond'] = torch.argmax(
             conds_ops_pred.squeeze(), dim=-1).to('cpu').numpy()
 
@@ -146,13 +162,6 @@ class NL2SQL():
         return pred
 
     def get_sql(self, data, m1, table, table_name):
-
-     # {'agg': array([6, 4, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6]),
-     # 'cond': array([4, 4, 4, 0, 0, 4, 4, 4, 4, 4, 4, 4, 4]),
-     # 'conn_op': array(1)}
-
-        #print("TABLE INFO")
-        #print(table, '\n\n')
 
         conn_map = ['', 'AND', 'OR']
         agg_map = ['', 'AVG', 'MAX', 'MIN', 'COUNT', 'SUM']
@@ -219,18 +228,19 @@ class NL2SQL():
 
                 if len(possible_cond) == 0:
                     continue
-                
+
                 print('possible_cond')
-                print(possible_cond,"\n\n")  
+                print(possible_cond, "\n\n")
 
                 # add condition text
-                possible_cond = sorted( possible_cond , key=lambda x: x[1], reverse=True)
-                
-                # if all cond has low p, pick first 
+                possible_cond = sorted(
+                    possible_cond, key=lambda x: x[1], reverse=True)
+
+                # if all cond has low p, pick first
                 if possible_cond[0][-1] < 0.4:
                     possible_cond[0][-1] = 1
 
-                if len(possible_cond)>1 and conn_op == '':
+                if len(possible_cond) > 1 and conn_op == '':
                     conn_op = 'AND'
 
                 for _cond, p in possible_cond:
@@ -251,12 +261,17 @@ class NL2SQL():
         return result
 
     def go(self, data):
-        # data:
-        #   table_id:
-        #   question:
-        #   headers:[['h1','h2','h3'],['text','real','text']]
-        #   table [['上海',1,'下雨'],[],[]...]
-
+        """Convert input query to SQL command
+        Args:
+            A dict have table_id, question, headers and table.
+            For example:
+            {
+                table_id: '4d258a053aaa11e994c3f40f24344a08',
+                question: '搜房网和人人网的周涨跌幅是多少',
+                headers: [['股票名稱', '周漲跌幅'], ['text', 'real']],
+                table: [['搜房网', 10], ['人人网', 50], ['長榮', 10], ...]
+            }
+        """
         m1 = self.get_m1_output(data["question"], data["headers"])
         result = self.get_sql(data, m1, data["table"], data["table_name"])
         return result

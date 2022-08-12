@@ -2,7 +2,6 @@ import cn2an
 import re
 import json
 
-
 def is_float(value):
     try:
         float(value)
@@ -10,20 +9,17 @@ def is_float(value):
     except ValueError:
         return False
 
-
 def cn_to_an(string):
     try:
         return str(cn2an.cn2an(string, 'normal'))
     except ValueError:
         return string
 
-
 def an_to_cn(string):
     try:
         return str(cn2an.an2cn(string))
     except ValueError:
         return string
-
 
 def str_to_num(string):
     try:
@@ -35,7 +31,6 @@ def str_to_num(string):
     except ValueError:
         return None
 
-
 def str_to_year(string):
     year = string.replace('年', '')
     year = cn_to_an(year)
@@ -45,7 +40,6 @@ def str_to_year(string):
     else:
         return None
 
-
 def load_json(json_file):
     result = []
     if json_file:
@@ -54,13 +48,11 @@ def load_json(json_file):
                 result.append(json.loads(line))
     return result
 
-
 def extract_values_from_text(text):
     values = []
     values += extract_year_from_text(text)
     values += extract_num_from_text(text)
     return list(set(values))
-
 
 def extract_num_from_text(text):
     CN_NUM = '〇一二三四五六七八九零壹贰叁肆伍陆柒捌玖貮两'
@@ -84,7 +76,6 @@ def extract_num_from_text(text):
         if str_num is not None:
             values.append(str_num)
     return values
-
 
 def extract_year_from_text(text):
     values = []

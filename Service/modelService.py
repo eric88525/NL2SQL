@@ -1,35 +1,44 @@
 from N2S.model import *
 from service.dbSerivce import DBService
 import re
+
 class ModelService():
-    def __init__(self,model_config,db_config):
+    def __init__(self, model_config, db_config):
+        """The service interact with ai model"""
+
         self.dbService = DBService(db_config)
         self.type_dict = {
-                'varchar':'text',
-                'float':'real'
+            'varchar': 'text',
+            'float': 'real'
         }
         self.model = NL2SQL(model_config)
 
-    def get_sql(self,question,table_name):
+    def get_sql(self, question: str, table_name: str):
+        """Given question and table name, return correspond SQL command"""
 
-        question = re.sub('<','小于',question)
-        question = re.sub('>','大于',question)
-        question = re.sub('=','等于',question)
-        question = re.sub('而且','且',question)
-        question = re.sub('而且','而且',question)
-        question = question.replace( '高' , '多').replace('低','少').replace('前面','少').replace('后面','多')
-
-        print(f"the question is {question}" , '=====================')
-
+        # replace some text to let model works better
+        question = re.sub('<', '小于', question)
+        question = re.sub('>', '大于', question)
+        question = re.sub('=', '等于', question)
+        question = re.sub('而且', '且', question)
+        question = re.sub('而且', '而且', question)
+        question = question.replace('高', '多').replace(
+            '低', '少').replace('前面', '少').replace('后面', '多')
+        
+        print(f"the question is {question}", '=====================')
+        
+        # Fetch table from database
         table = self.dbService.get_table(table_name)
-        headers = self.dbService.get_headers(table_name)
-        headers[1] = [ self.type_dict[i] for i in headers[1]]
+        # get headers from database
+        headers = self.dbService.get_headers_info(table_name)
+        # convert header datatype to token type
+        headers[1] = [self.type_dict[i] for i in headers[1]]
         data = {
             'question': question,
             'headers': headers,
             'table':   table,
             'table_name': table_name
         }
+        # get SQL command from model
         result = self.model.go(data)
-
         return result

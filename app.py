@@ -1,6 +1,5 @@
 from flask import jsonify, request, render_template
 from flask import Flask
-import json
 from service.dbSerivce import DBService
 from service.modelService import ModelService
 from config import modelConfig, dbConfig
@@ -10,7 +9,6 @@ app = Flask(__name__)
 app.config["DEBUG"] = True
 app.config["JSON_AS_ASCII"] = False
 
-
 testing = False
 
 dbService = DBService(dbConfig)
@@ -19,11 +17,10 @@ modelService = ModelService(modelConfig, dbConfig)
 tw2s = OpenCC('tw2s')
 s2t = OpenCC('s2t')
 
-
 @app.route("/")
 def index():
+    """The main page"""
     return render_template("index.html")
-
 
 @app.route("/api/tablelist", methods=["GET"])
 def get_table_list():
@@ -42,7 +39,7 @@ def get_table_list():
 def get_talbe():
 
     request_data = request.get_json()
-    columns = dbService.get_headers(request_data["table_name"])[0]
+    columns = dbService.get_headers_info(request_data["table_name"])[0]
     rows = dbService.get_table(request_data["table_name"])
     _data = []
 
@@ -58,9 +55,9 @@ def get_talbe():
 
 
 @app.route("/api/headers", methods=["POST"])
-def get_headers():
+def get_headers_info():
     request_data = request.get_json()
-    result = dbService.get_headers(request_data["table_name"])
+    result = dbService.get_headers_info(request_data["table_name"])
 
     if testing:
         result = [('姓名', '學號', '身高', '體重', '居住地'),
