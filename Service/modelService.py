@@ -1,4 +1,4 @@
-from N2S.model import *
+from N2S.combine import *
 from service.dbSerivce import DBService
 import re
 
