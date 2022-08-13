@@ -139,16 +139,27 @@ class M2Dataset(Dataset):
         return all_pairs
 
     def __getitem__(self, idx):
-        # data[idx] = namedtuple('pair', ['question', 'col_op_val', 'label'])
-        ids = self.tokenizer.encode_plus(
-            self.datas[idx].question, self.datas[idx].col_op_val, max_length=270, padding='max_length', truncation=True)
-
-        for k in ids.keys():
-            ids[k] = torch.tensor(ids[k])
-
-        ids['label'] = torch.Tensor([self.datas[idx].label])
-
-        return ids
-
+        return self.datas[idx]
+        
     def __len__(self):
         return len(self.datas)
+
+    @staticmethod
+    def collate_fn(batch, tokenizer):
+        """ A staticmethod, be used at torch.utils.data.DataLoader collect_fn argument
+        Arguments:
+            batch: A batch size length list, each item is a namedtuple.
+            For example:
+                [ pair(question='17年6月11号那天生...', col_op_val='生产日期/批号=2017-09-23', label=1),
+                  pair(question='哪些公司周涨跌幅...', col_op_val='收盘价（元）<1', label=1) ]
+            tokenizer:
+                Tokenizer
+        Returns:
+            A dict contain 4 keys.
+            3 for bert model, 1 for label
+        """
+
+        fn_batch = tokenizer.batch_encode_plus( batch_text_or_text_pairs=[[x.question, x.col_op_val] for x in batch], padding=True, return_tensors ='pt')
+        fn_batch['label'] = torch.FloatTensor([[x.label] for x in batch])
+
+        return fn_batch

@@ -163,7 +163,6 @@ if __name__ == '__main__':
     parser.add_argument(
         '--model-type', default='voidful/albert_chinese_tiny', type=str)
     parser.add_argument('--device', default=torch.device('cuda:0'), type=int)
-    parser.add_argument('--language', default='china', type=str)
     args = parser.parse_args()
 
     writer = SummaryWriter(log_dir=f"./runs/{args.exp_name}")

@@ -38,12 +38,15 @@ def getTime():
 
 def train(args):
 
-    train_data = M2Dataset(args.train_table_file, args.train_data_file, args.model_type)
-    train_loader = DataLoader(
-        train_data, batch_size=args.batch_size, shuffle=True, num_workers=8)
+    train_data = M2Dataset(args.train_table_file,
+                           args.train_data_file, args.model_type)
+    train_loader = DataLoader(train_data, batch_size=args.batch_size, shuffle=True, 
+                              num_workers=8, collate_fn=lambda b: M2Dataset.collate_fn(b, train_data.tokenizer))
 
-    val_data = M2Dataset(args.val_table_file, args.val_data_file, args.model_type)
-    val_loader = DataLoader(val_data, batch_size=args.batch_size, shuffle=False, num_workers=8)
+    val_data = M2Dataset(args.val_table_file,
+                         args.val_data_file, args.model_type)
+    val_loader = DataLoader(val_data, batch_size=args.batch_size, shuffle=False,
+                            num_workers=8, collate_fn=lambda b: M2Dataset.collate_fn(b, val_data.tokenizer))
 
     # model
     model = M2Model(args.model_type).to(args.device)
@@ -64,13 +67,13 @@ def train(args):
 
             for k in batch.keys():
                 batch[k] = batch[k].to(args.device)
-   
-            label = batch['label']
 
+            label = batch['label']
             pred = model(**batch)
 
             batch_loss = loss_fn(pred, label)
             epoch_loss += batch_loss.item()
+
             writer.add_scalar("Train/batch", batch_loss.item(), steps)
             steps += 1
             batch_loss.backward()
@@ -103,11 +106,12 @@ def test(model, data_loader):
 
     with torch.no_grad():
         for batch in data_loader:
-            for k, v in batch.items():
+            for k in batch.keys():
                 batch[k] = batch[k].to(args.device)
-   
+
             label = batch['label']
             pred = model(**batch)
+
             batch_loss = loss_fn(pred, label)
             total_loss += batch_loss.item()
 
@@ -117,20 +121,23 @@ def test(model, data_loader):
 
 
 def main(args):
-    mode = set(['train','test'])
-    
+    mode = set(['train', 'test'])
+
     if 'train' in mode:
         if not os.path.exists('saved_models'):
             os.makedirs('saved_models')
         train(args)
-    
+
     if 'test' in mode:
-        test_data = M2Dataset(args.test_table_file, args.test_data_file, args.model_type)
-        test_loader = DataLoader(test_data, batch_size=args.batch_size, shuffle=False, num_workers=8)  
+        test_data = M2Dataset(args.test_table_file,
+                              args.test_data_file, args.model_type)
+        test_loader = DataLoader(test_data, batch_size=args.batch_size, shuffle=False,
+                                 num_workers=8, collate_fn=lambda b: M2Dataset.collate_fn(b, test_data.tokenizer))
         model = M2Model(args.model_type).to(args.device)
         model.load_state_dict(torch.load(f'saved_models/{args.exp_name}'))
         test_loss = test(model, test_loader)
         writer.add_scalar("Test/epoch", test_loss)
+
 
 if __name__ == "__main__":
 
@@ -152,15 +159,18 @@ if __name__ == "__main__":
     parser.add_argument('--test_data_file',
                         default='./data/test/test.json', type=str)
 
-    parser.add_argument('--exp-name', default="pair_albertlarge_v1", type=str)
+    parser.add_argument(
+        '--exp-name', default="M2_albert_chinese_large_v1", type=str)
     parser.add_argument('--batch-size', default=8, type=int)
     # check_num
     parser.add_argument('--epoch', default=20, type=int)
     parser.add_argument('--learning-rate', default=2e-5, type=float)
     parser.add_argument('--weight-decay', default=0.001, type=float)
+
     # model_type = 'hfl/chinese-bert-wwm'  'hfl/chinese-roberta-wwm-ext'  'hfl/chinese-roberta-wwm-ext-large'
     parser.add_argument(
         '--model-type', default='voidful/albert_chinese_large', type=str)
+
     parser.add_argument('--device', default=torch.device('cuda:0'), type=int)
     args = parser.parse_args()
 
