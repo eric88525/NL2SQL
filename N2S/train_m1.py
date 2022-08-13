@@ -119,7 +119,12 @@ def test(model, batch_sampler, round):
 
 
 def main(args):
+    
+    if not os.path.exists('saved_models'):
+        os.makedirs('saved_models')
+    
     mode = 'train'
+
     if mode == 'train':
         train(args)
 
