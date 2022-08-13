@@ -4,6 +4,9 @@ from torch.utils.data import Dataset
 from collections import namedtuple
 from .utils import *
 
+pair = namedtuple('pair', ['question', 'col_op_val', 'label'])
+
+
 class M2Dataset(Dataset):
     def __init__(self, table_path, data_path, tokenizer_name_or_path):
 
@@ -81,7 +84,6 @@ class M2Dataset(Dataset):
         create more sample like:
             ['成交量 = 2011', '成交量 = 3.17', ....]
         """
-        pair = namedtuple('pair', ['question', 'col_op_val', 'label'])
         all_pairs = []
         operator_list = ['>', '<', '=', '!=']
 
@@ -127,7 +129,7 @@ class M2Dataset(Dataset):
                         continue
 
                     seen_pair.add(col_op_val)
-                    pair_ = pair(question=data["question"], col_op_val=col_op_val, label=1)
+                    pair_ = pair(question=data["question"], col_op_val=col_op_val, label=0)
                     all_pairs.append(pair_)
                     max_neg -=1
 
