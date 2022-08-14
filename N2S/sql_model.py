@@ -91,7 +91,7 @@ class SQLModel():
 
     def get_m2_output(self, question, cond):
 
-        plus = self.m2_tokenizer.encode_plus(question, cond, return_tensor='pt')
+        plus = self.m2_tokenizer.encode_plus(question, cond, return_tensors='pt')
         
         for k in plus.keys():
             plus[k] = plus[k].to(self.device)
@@ -183,14 +183,14 @@ class SQLModel():
                 if len(possible_cond) == 0:
                     continue
                 
-                if self.analyze:
-                    print('possible_cond')
-                    print(possible_cond, "\n\n")
-
                 # sort by probability, add condition text
                 possible_cond = sorted(
                     possible_cond, key=lambda x: x[1], reverse=True)
 
+                if self.analyze:
+                    print('possible_cond')
+                    for cond_ in possible_cond:
+                        print(cond_)
                 # if all cond has low p, pick first
                 if possible_cond[0][-1] < 0.4:
                     possible_cond[0][-1] = 1
