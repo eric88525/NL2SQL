@@ -61,7 +61,7 @@ class SQLModel():
         # all_tokens + [[SEP], [unused11], 'name', [SEP], [unused12], 'ege'...]
         for col_name, col_type in zip(headers[0], headers[1]):
             tokens = ['[SEP]', self.special_token_map[col_type]] + \
-                self.tokenizer.tokenize(col_name)
+                self.m1_tokenizer.tokenize(col_name)
             all_tokens.extend(tokens)
 
         # Get header token index
