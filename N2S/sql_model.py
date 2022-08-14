@@ -16,9 +16,9 @@ class SQLModel():
         self.device = config['device']
 
         self.m1_tokenizer = AutoTokenizer.from_pretrained(
-            config['m1_pretrained_model_name'])
+            config['m1_tokenizer_name_or_path'])
         self.m2_tokenizer = AutoTokenizer.from_pretrained(
-            config['m2_pretrained_model_name'])
+            config['m2_tokenizer_name_or_path'])
 
         self.model_1 = M1Model(config['m1_pretrained_model_name'])
         self.model_1.load_state_dict(torch.load(
