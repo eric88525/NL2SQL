@@ -1,5 +1,5 @@
-from N2S.combine import *
-from service.dbSerivce import DBService
+from N2S.sql_model import *
+from .dbSerivce import DBService
 import re
 
 class ModelService():
@@ -11,7 +11,7 @@ class ModelService():
             'varchar': 'text',
             'float': 'real'
         }
-        self.model = NL2SQL(model_config)
+        self.model = SQLModel(model_config)
 
     def get_sql(self, question: str, table_name: str):
         """Given question and table name, return correspond SQL command"""
@@ -25,7 +25,7 @@ class ModelService():
         question = question.replace('高', '多').replace(
             '低', '少').replace('前面', '少').replace('后面', '多')
         
-        print(f"the question is {question}", '=====================')
+        print(f"The user question is {question}")
         
         # Fetch table from database
         table = self.dbService.get_table(table_name)
@@ -40,5 +40,6 @@ class ModelService():
             'table_name': table_name
         }
         # get SQL command from model
-        result = self.model.go(data)
+        result = self.model.data_to_sql(data)
+        
         return result
