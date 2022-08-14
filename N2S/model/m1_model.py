@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 from transformers import AutoConfig, AutoModel
 
+
 class M1Model(nn.Module):
     """The model that can classify columns and SQL command operator.
 
@@ -21,6 +22,7 @@ class M1Model(nn.Module):
             For example: weight > 50
             operator is in ['>', '<', '=', '!=', '']
     """
+
     def __init__(self, pretrained_model_name):
         super(M1Model, self).__init__()
 
@@ -28,9 +30,27 @@ class M1Model(nn.Module):
         self.bert_model = AutoModel.from_pretrained(
             pretrained_model_name, config=config)
 
-        self.cond_conn_op_decoder = nn.Linear(config.hidden_size, 3)
-        self.agg_deocder = nn.Linear(config.hidden_size, 7)
-        self.cond_op_decoder = nn.Linear(config.hidden_size, 5)
+        self.cond_conn_op_decoder = nn.Sequential(
+            nn.Dropout(0.2),
+            nn.Linear(config.hidden_size, config.hidden_size),
+            nn.ReLU(),
+            nn.Dropout(0.2),
+            nn.Linear(config.hidden_size, 3)
+        )
+        self.agg_deocder = nn.Sequential(
+            nn.Dropout(0.2),
+            nn.Linear(config.hidden_size, config.hidden_size),
+            nn.ReLU(),
+            nn.Dropout(0.2),
+            nn.Linear(config.hidden_size, 7)
+        )
+        self.cond_op_decoder = nn.Sequential(
+            nn.Dropout(0.2),
+            nn.Linear(config.hidden_size, config.hidden_size),
+            nn.ReLU(),
+            nn.Dropout(0.2),
+            nn.Linear(config.hidden_size, 5)
+        )
 
     def get_agg_hiddens(self, hiddens, header_idx):
         """Get hidden states of columns
@@ -46,14 +66,14 @@ class M1Model(nn.Module):
         return torch.stack(arr, dim=0)
 
     def forward(self, input_ids, attention_mask, token_type_ids, header_idx, **kwargs):
-        
+
         hiddens, cls = self.bert_model(
             input_ids=input_ids, attention_mask=attention_mask, token_type_ids=token_type_ids, return_dict=False)
 
         cond_conn_op = self.cond_conn_op_decoder(cls)
-    
+
         # shape = (batch_size, columns_count, hidden_dim)
-        header_hiddens = self.get_agg_hiddens(hiddens, header_idx) 
+        header_hiddens = self.get_agg_hiddens(hiddens, header_idx)
         # shape = (batch_size, columns_count, 7)
         agg = self.agg_deocder(header_hiddens)
         # shape = (batch_size, columns_count, 5)
