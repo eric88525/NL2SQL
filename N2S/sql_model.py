@@ -59,7 +59,7 @@ class SQLModel():
         # Append [[SEP], [unused11], text_type_column, [SEP], [unused12], real_type_column] to all_tokens
         # The result is:
         # all_tokens + [[SEP], [unused11], 'name', [SEP], [unused12], 'ege'...]
-        for col_name, col_type in zip(headers.columns_name, headers.columns_type):
+        for col_name, col_type in zip(headers[0], headers[1]):
             tokens = ['[SEP]', self.special_token_map[col_type]] + \
                 self.tokenizer.tokenize(col_name)
             all_tokens.extend(tokens)
@@ -122,7 +122,7 @@ class SQLModel():
         agg, cond, conn_op = m1_result['agg'], m1_result['cond'], self.conn_map[m1_result['conn_op']]
 
         column_info = namedtuple('headers', ['columns_name', 'columns_type'])
-        headers = column_info(columns_name=headers.columns_name, columns_type=headers.columns_type)
+        headers = column_info(columns_name=headers[0], columns_type=headers[1])
 
         pre = ''
         SELECT_COLUMN = ''
