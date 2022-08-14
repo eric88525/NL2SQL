@@ -99,7 +99,7 @@ class SQLModel():
         pred = self.model_2(**plus).squeeze().item()
         return pred
 
-    def m1_to_sql(self, headers, question, m1_result, table, table_name):
+    def m1_to_sql(self, m1_result, headers, question, table, table_name):
         """Convert m1 model output to SQL command
             Arguments:
                 headers: A list contains column list and column type list. For example:
@@ -225,11 +225,12 @@ class SQLModel():
             data: A dict have table_id, question, headers and table.
             For example:
             {
+                table_name: 'stock',
                 question: '搜房网和人人网的周涨跌幅是多少',
                 headers: [['股票名稱', '周漲跌幅'], ['text', 'real']],
                 table: [['搜房网', 10], ['人人网', 50], ['長榮', 10], ...]
             }
         """
-        m1 = self.get_m1_output(data["question"], data["headers"])
-        result = self.m1_to_sql(data, m1, data["table"], data["table_name"])
+        m1_result = self.get_m1_output(data["question"], data["headers"])
+        result = self.m1_to_sql(m1_result, **data)
         return result
