@@ -154,14 +154,14 @@ if __name__ == '__main__':
                         default='./data/test/test.json', type=str)
 
     # train args
-    parser.add_argument('--exp-name', default="albert_v1", type=str)
-    parser.add_argument('--samples-in-epoch', default=10000, type=int)
-    parser.add_argument('--batch-size', default=16, type=int)
+    parser.add_argument('--exp-name', default="M1_albert_chinese_large_v1", type=str)
+    parser.add_argument('--samples-in-epoch', default=5000, type=int)
+    parser.add_argument('--batch-size', default=8, type=int)
     parser.add_argument('--epoch', default=30, type=int)
     parser.add_argument('--learning-rate', default=1e-5, type=float)
     parser.add_argument('--weight-decay', default=0.001, type=float)
     parser.add_argument(
-        '--model-type', default='voidful/albert_chinese_tiny', type=str)
+        '--model-type', default='voidful/albert_chinese_large', type=str)
     parser.add_argument('--device', default=torch.device('cuda:0'), type=int)
     args = parser.parse_args()
 

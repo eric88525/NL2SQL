@@ -18,6 +18,7 @@ class M1Dataset():
 
     def get_table(self, path):
         """Get table's columns info
+        
         Returns:
             A dict mapping table_id to columns info.
             The columns info is a list contains two item.
@@ -115,7 +116,7 @@ class BatchSampler():
                 'agg': the function apply to column
                 'cond_conn_op': the column operator 
                 'conds_ops': the condition connect operator
-                'header_idx': 
+                'header_idx': column token index in input_ids
         """
         question, headers, sql = data['question'], data['header'], data['sql']
 
@@ -171,7 +172,7 @@ class BatchSampler():
     def select_random_group(self):
         """Return a group index
         
-        The more data a group have, the higher probability it will be selected
+        The more data in a group, the higher probability the group will be selected
 
         Returns
             int index in range(len(self.group_prob))
@@ -188,7 +189,12 @@ class BatchSampler():
         return result
 
     def get_batch(self, batch_size, encode=True):
-        """Get a batch"""
+        """Get a batch
+        
+        Arguments:
+            batch_size: batch size
+            encode: If false, return untokenized text
+        """
         # select one group datas
         one_group_data = self.data_groups[self.select_random_group()]
         # select k data from group
