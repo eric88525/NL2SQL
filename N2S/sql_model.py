@@ -1,16 +1,17 @@
 
 import numpy as np
 import torch
-import torch.nn as nn
 from transformers import AutoTokenizer
 from difflib import SequenceMatcher
 from .model.m1_model import M1Model
 from .model.m2_model import M2Model
 from .dataset.utils import *
-from collections import namedtuple   
+from collections import namedtuple
+
 
 class SQLModel():
     """The class combine model 1 output and model 2 output to generate SQL commmand"""
+
     def __init__(self, config):
 
         self.device = config['device']
@@ -27,7 +28,7 @@ class SQLModel():
         self.model_2 = M2Model(config['m2_pretrained_model_name'])
         self.model_2.load_state_dict(torch.load(
             config['m2_model_path'], map_location=torch.device('cpu')))
-        
+
         self.special_token_map = {'text': '[unused11]', 'real': '[unused12]'}
         self.analyze = config['analyze']
 
@@ -68,14 +69,16 @@ class SQLModel():
         header_idx = []
         for i, token in enumerate(all_tokens):
             if token == self.special_token_map['text'] or token == self.special_token_map['real']:
-                header_idx.append(i+1) # +1 due to we'll add [SEP] token in first index
-    
+                # +1 due to we'll add [SEP] token in first index
+                header_idx.append(i+1)
+
         plus = self.m1_tokenizer.encode_plus(
             all_tokens, is_split_into_words=True, return_tensors='pt')
 
         for k in plus.keys():
             plus[k] = plus[k].to(self.device)
-        plus['header_idx'] = torch.tensor(header_idx).unsqueeze(0).to(self.device)
+        plus['header_idx'] = torch.tensor(
+            header_idx).unsqueeze(0).to(self.device)
 
         cond_conn_op_pred, conds_ops_pred, agg_pred = self.model_1(**plus)
 
@@ -91,8 +94,9 @@ class SQLModel():
 
     def get_m2_output(self, question, cond):
 
-        plus = self.m2_tokenizer.encode_plus(question, cond, return_tensors='pt')
-        
+        plus = self.m2_tokenizer.encode_plus(
+            question, cond, return_tensors='pt')
+
         for k in plus.keys():
             plus[k] = plus[k].to(self.device)
 
@@ -143,17 +147,20 @@ class SQLModel():
             agg[np.argmax(str_sim)] = 0
 
             if self.analyze:
-                print(f"agg not select! after fix  = {agg} by {str_sim.tolist()}")
+                print(
+                    f"agg not select! after fix  = {agg} by {str_sim.tolist()}")
 
         # SQL SELECT
         for col_idx, val in enumerate(agg):
             if val != 6:
                 if headers.columns_type[col_idx] == 'text':
-                    SELECT_COLUMN += pre + f"(`{headers.columns_name[col_idx]}`)"
+                    SELECT_COLUMN += pre + \
+                        f"(`{headers.columns_name[col_idx]}`)"
                 else:
-                    SELECT_COLUMN += pre + f"{self.agg_map[val]}(`{headers.columns_name[col_idx]}`)"
+                    SELECT_COLUMN += pre + \
+                        f"{self.agg_map[val]}(`{headers.columns_name[col_idx]}`)"
                 pre = ' ,'
-        
+
         if self.analyze:
             print(f"SELECT {SELECT_COLUMN}\n\n")
 
@@ -166,7 +173,8 @@ class SQLModel():
                     values_list = set([r[col_idx]
                                       for r in table])  # value from table
                 else:
-                    values_list = extract_values_from_text(question)  # extract values from question
+                    values_list = extract_values_from_text(
+                        question)  # extract values from question
                     if self.analyze:
                         print(values_list, 'number from question')
 
@@ -182,7 +190,7 @@ class SQLModel():
                 # no where condition, skip to next column
                 if len(possible_cond) == 0:
                     continue
-                
+
                 # sort by probability, add condition text
                 possible_cond = sorted(
                     possible_cond, key=lambda x: x[1], reverse=True)
@@ -206,7 +214,7 @@ class SQLModel():
                         WHERE_COND += f"{conn_op} {cond_}"
                     else:
                         WHERE_COND += f"{cond_}"
-        
+
         if self.analyze:
             print(f"WHERE = {WHERE_COND}")
         result = f'SELECT {SELECT_COLUMN} FROM `{table_name}`'
