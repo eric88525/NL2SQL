@@ -167,5 +167,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     writer = SummaryWriter(log_dir=f"./runs/{args.exp_name}")
+    
+    writer.add_text('args', str(args))
 
     main(args)

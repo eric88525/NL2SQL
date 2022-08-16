@@ -4,13 +4,15 @@ import numpy as np
 from transformers import AutoTokenizer
 import torch
 
+
 class M1Dataset():
     """model 1 dataset
-    
+
     Attributes:
         table_map: A map mapping table id to it's columns info.
         datas: 
     """
+
     def __init__(self, table_path, data_path):
 
         self.table_map = self.get_table(table_path)
@@ -18,7 +20,7 @@ class M1Dataset():
 
     def get_table(self, path):
         """Get table's columns info
-        
+
         Returns:
             A dict mapping table_id to columns info.
             The columns info is a list contains two item.
@@ -30,7 +32,7 @@ class M1Dataset():
             ]
         """
         id_header = {}
-        
+
         with open(path, 'r') as json_file:
             json_list = list(json_file)
 
@@ -64,33 +66,36 @@ class M1Dataset():
             all_datas.append(data)
 
         return all_datas
-    
+
+
 class BatchSampler():
     """The sampler can create batch from datas and move to device"""
+
     def __init__(self, data, model_type, device):
 
         self.data = sorted(data, key=lambda x: len(x['header'][0]))
         # minimum column counts
-        self.min_header_count = len(self.data[0]['header'][0])  
+        self.min_header_count = len(self.data[0]['header'][0])
         # maximun column counts
-        self.max_header_count = len(self.data[-1]['header'][0])  
+        self.max_header_count = len(self.data[-1]['header'][0])
         # group datas according to column counts
-        self.data_groups = self.group_data(self.data)  
+        self.data_groups = self.group_data(self.data)
         # [unused1] and [unused2] represent text and real special token
-        self.tokenizer = AutoTokenizer.from_pretrained(model_type, additional_special_tokens = ['[unused11]', '[unused12]'])
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            model_type, additional_special_tokens=['[unused11]', '[unused12]'])
         # the token to represent text type or real type
         self.special_token_map = {'text': '[unused11]', 'real': '[unused12]'}
 
         self.device = device
-    
+
     def group_data(self, datas):
         # A list has n groups
         # n = self.max_header_count - self.min_header_count + 1
-        grouped_result = [] 
-        
+        grouped_result = []
+
         prev_header_len = self.min_header_count
         prev_idx = 0
-        
+
         for i, data_ in enumerate(self.data):
             header_len = len(data_['header'][0])
             if header_len != prev_header_len:
@@ -101,8 +106,8 @@ class BatchSampler():
         grouped_result.append(datas[prev_idx:])
         group_item_counts = np.array([len(x) for x in grouped_result])
 
-        # the probabily of the group be selected 
-        self.group_prob = group_item_counts / np.sum(group_item_counts)  
+        # the probabily of the group be selected
+        self.group_prob = group_item_counts / np.sum(group_item_counts)
 
         return grouped_result
 
@@ -121,7 +126,7 @@ class BatchSampler():
         question, headers, sql = data['question'], data['header'], data['sql']
 
         # tokenize question to tokens (without special token)
-        # for example: 
+        # for example:
         # 'i have a pen' => ['i', 'have', 'a', 'pen']
         all_tokens = self.tokenizer.tokenize(question)
 
@@ -137,21 +142,23 @@ class BatchSampler():
         header_idx = []
         for i, token in enumerate(all_tokens):
             if token == self.special_token_map['text'] or token == self.special_token_map['real']:
-                header_idx.append(i+1) # +1 due to we'll add [SEP] token in first index
-    
+                # +1 due to we'll add [SEP] token in first index
+                header_idx.append(i+1)
+
         column_counts = len(headers[0])
 
         # Create label like
-        # [6, 6, 6, 5 ,6] 
+        # [6, 6, 6, 5 ,6]
         # 6 = NO_OP reoresenting not select this column
-        # 0~5 representing the column should be selected and apply what kind of funciton 
+        # 0~5 representing the column should be selected and apply what kind of funciton
         # ['', AVG, MAX, MIN, COUNT, SUM, NO_OP]
-        agg = [6 for _ in range(column_counts)] 
+        agg = [6 for _ in range(column_counts)]
         for sel_, agg_ in zip(sql['sel'], sql['agg']):
             agg[sel_] = agg_
 
         # encode tokens
-        plus = self.tokenizer.encode_plus(all_tokens, is_split_into_words=True, max_length=280, padding='max_length', truncation=True)
+        plus = self.tokenizer.encode_plus(
+            all_tokens, is_split_into_words=True, max_length=280, padding='max_length', truncation=True)
 
         conds_ops = [4 for _ in range(column_counts)]
 
@@ -171,7 +178,7 @@ class BatchSampler():
 
     def select_random_group(self):
         """Return a group index
-        
+
         The more data in a group, the higher probability the group will be selected
 
         Returns
@@ -190,7 +197,7 @@ class BatchSampler():
 
     def get_batch(self, batch_size, encode=True):
         """Get a batch
-        
+
         Arguments:
             batch_size: batch size
             encode: If false, return untokenized text
@@ -199,7 +206,7 @@ class BatchSampler():
         one_group_data = self.data_groups[self.select_random_group()]
         # select k data from group
         k_datas = random.choices(one_group_data, k=batch_size)
-        
+
         if encode:
             return self.list_to_batch([self.encode(x) for x in k_datas])
         else:

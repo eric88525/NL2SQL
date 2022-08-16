@@ -176,4 +176,6 @@ if __name__ == "__main__":
 
     writer = SummaryWriter(log_dir=f"./runs/{args.exp_name}")
     # debug()
+    writer.add_text('args', str(args))
+
     main(args)
