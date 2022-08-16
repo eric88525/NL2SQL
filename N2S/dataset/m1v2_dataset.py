@@ -91,7 +91,7 @@ class M1Dataset(Dataset):
         """
         Arguments:
             batch: A dictionary list, length is batch size. For example:
-            {
+            [{
                 "question": "长沙2011年平均每天成交量是3.17,那么近一周的成交量是多少",
                 "table_id": "69cc8c0c334311e98692542696d6e445",
                 "sql": { "agg": [0],
@@ -100,7 +100,7 @@ class M1Dataset(Dataset):
                          "conds": [[1, 2, "3.17"], [0, 2, "长沙"]] # [column index, column operator, value]
                         },
                 "header":  [['name', 'age', 'gender'], ['varchar', 'float', 'varchar']]
-            }
+            }, ...]
         Returns:
             A dict has multiple keys:
                 'input_ids': tokenized text ids

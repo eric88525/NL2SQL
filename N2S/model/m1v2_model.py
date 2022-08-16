@@ -29,26 +29,22 @@ class M1Model(nn.Module):
         config = AutoConfig.from_pretrained(pretrained_model_name)
         self.bert_model = AutoModel.from_pretrained(
             pretrained_model_name, config=config)
-
         self.cond_conn_op_decoder = nn.Sequential(
-            nn.Dropout(0.2),
+            nn.Dropout(0.5),
             nn.Linear(config.hidden_size, config.hidden_size),
             nn.ReLU(),
-            nn.Dropout(0.2),
             nn.Linear(config.hidden_size, 3)
         )
         self.agg_deocder = nn.Sequential(
-            nn.Dropout(0.2),
+            nn.Dropout(0.5),
             nn.Linear(config.hidden_size, config.hidden_size),
             nn.ReLU(),
-            nn.Dropout(0.2),
             nn.Linear(config.hidden_size, 7)
         )
         self.cond_op_decoder = nn.Sequential(
-            nn.Dropout(0.2),
+            nn.Dropout(0.5),
             nn.Linear(config.hidden_size, config.hidden_size),
             nn.ReLU(),
-            nn.Dropout(0.2),
             nn.Linear(config.hidden_size, 5)
         )
 

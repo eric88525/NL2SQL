@@ -3,7 +3,9 @@ import numpy as np
 import torch
 from transformers import AutoTokenizer
 from difflib import SequenceMatcher
-from .model.m1_model import M1Model
+# from .model.m1_model import M1Model
+from .model.m1v2_model import M1Model
+
 from .model.m2_model import M2Model
 from .dataset.utils import *
 from collections import namedtuple
@@ -17,9 +19,12 @@ class SQLModel():
         self.device = config['device']
 
         self.m1_tokenizer = AutoTokenizer.from_pretrained(
-            config['m1_tokenizer_name_or_path'])
+            config['m1_tokenizer_name_or_path'], additional_special_tokens=['[unused11]', '[unused12]'])
         self.m2_tokenizer = AutoTokenizer.from_pretrained(
             config['m2_tokenizer_name_or_path'])
+
+        self.special_token_id = [self.m1_tokenizer.convert_tokens_to_ids('[unused11]'),
+                                self.m1_tokenizer.convert_tokens_to_ids('[unused12]')]
 
         self.model_1 = M1Model(config['m1_pretrained_model_name'])
         self.model_1.load_state_dict(torch.load(
@@ -65,20 +70,25 @@ class SQLModel():
                 self.m1_tokenizer.tokenize(col_name)
             all_tokens.extend(tokens)
 
+        plus = self.m1_tokenizer.encode_plus(
+            all_tokens, is_split_into_words=True, return_tensors='pt')
         # Get header token index
+        """
         header_idx = []
         for i, token in enumerate(all_tokens):
             if token == self.special_token_map['text'] or token == self.special_token_map['real']:
                 # +1 due to we'll add [SEP] token in first index
                 header_idx.append(i+1)
+        plus['header_idx'] = torch.tensor(
+            header_idx).unsqueeze(0).to(self.device)  
+        """
 
-        plus = self.m1_tokenizer.encode_plus(
-            all_tokens, is_split_into_words=True, return_tensors='pt')
+        plus['header_idx'] = torch.zeros_like(plus['input_ids'])
+        for special_token_id_ in self.special_token_id:
+            plus['header_idx'] [plus['input_ids'] == special_token_id_] = 1
 
         for k in plus.keys():
             plus[k] = plus[k].to(self.device)
-        plus['header_idx'] = torch.tensor(
-            header_idx).unsqueeze(0).to(self.device)
 
         cond_conn_op_pred, conds_ops_pred, agg_pred = self.model_1(**plus)
 
