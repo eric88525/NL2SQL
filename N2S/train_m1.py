@@ -23,9 +23,10 @@ def get_batch_loss(cond_conn_op_pred, cond_conn_op_label, conds_ops_pred, conds_
     loss = 0
     loss += loss_fn(cond_conn_op_pred, cond_conn_op_label)*0.33
 
-    for i in range(2):
-        loss += loss_fn(conds_ops_pred[i], conds_ops_label[i])*0.33
-        loss += loss_fn(agg_pred[i], agg_label[i])*0.33
+    # conds_ops_pred shape = (batch_size, columns_count, 5)
+    loss += loss_fn(conds_ops_pred.view(-1, 5), conds_ops_label.view(-1))*0.33
+    # agg_pred shape = (batch_size, columns_count, 7)
+    loss += loss_fn(agg_pred.view(-1, 7), agg_label.view(-1))*0.33
 
     return loss
 
@@ -36,7 +37,6 @@ def getTime():
 
 def train(args):
 
-    
     # train data
     train_data = M1Dataset(args.train_table_file, args.train_data_file)
     train_batch_sampler = BatchSampler(
@@ -85,7 +85,8 @@ def train(args):
             writer.add_scalar("Train/batch", batch_loss.item(), steps)
             steps += 1
 
-        writer.add_scalar("Train/epoch", epoch_loss/args.samples_in_epoch, epoch)
+        writer.add_scalar("Train/epoch", epoch_loss /
+                          args.samples_in_epoch, epoch)
         val_loss = test(model, val_batch_sampler, round=1000)
         writer.add_scalar("Val/epoch", val_loss, epoch)
 
@@ -119,10 +120,10 @@ def test(model, batch_sampler, round):
 
 
 def main(args):
-    
+
     if not os.path.exists('saved_models'):
         os.makedirs('saved_models')
-    
+
     mode = 'train'
 
     if mode == 'train':
@@ -154,17 +155,18 @@ if __name__ == '__main__':
                         default='./data/test/test.json', type=str)
 
     # train args
-    parser.add_argument('--exp-name', default="albert_v1", type=str)
-    parser.add_argument('--samples-in-epoch', default=10000, type=int)
-    parser.add_argument('--batch-size', default=16, type=int)
+    parser.add_argument(
+        '--exp-name', default="M1_albert_chinese_large_v1", type=str)
+    parser.add_argument('--samples-in-epoch', default=5000, type=int)
+    parser.add_argument('--batch-size', default=8, type=int)
     parser.add_argument('--epoch', default=30, type=int)
     parser.add_argument('--learning-rate', default=1e-5, type=float)
     parser.add_argument('--weight-decay', default=0.001, type=float)
     parser.add_argument(
-        '--model-type', default='voidful/albert_chinese_tiny', type=str)
+        '--model-type', default='voidful/albert_chinese_large', type=str)
     parser.add_argument('--device', default=torch.device('cuda:0'), type=int)
     args = parser.parse_args()
 
     writer = SummaryWriter(log_dir=f"./runs/{args.exp_name}")
-    
+
     main(args)
