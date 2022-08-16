@@ -93,7 +93,7 @@ def train(args):
         if val_loss < minloss:
             minloss = val_loss
             best_model = copy.deepcopy(model.state_dict())
-            print(f"save model at epoch {epoch}, dev loss: {val_loss:.3f}")
+            print(f"save model at epoch {epoch}, val loss: {val_loss:.3f}")
             torch.save(best_model, f'saved_models/{args.exp_name}')
 
 
@@ -167,7 +167,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     writer = SummaryWriter(log_dir=f"./runs/{args.exp_name}")
-    
+
     writer.add_text('args', str(args))
 
     main(args)

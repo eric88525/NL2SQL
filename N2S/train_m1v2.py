@@ -87,7 +87,7 @@ def train(args):
             steps += 1
 
         writer.add_scalar("Train/epoch", epoch_loss /
-                          args.samples_in_epoch, epoch)
+                          len(train_loader), epoch)
         val_loss = test(model, val_loader)
         writer.add_scalar("Val/epoch", val_loss, epoch)
 
@@ -120,7 +120,7 @@ def test(model, loader):
                 cond_conn_op_pred, cond_conn_op_label, conds_ops_pred, conds_ops_label, agg_pred, agg_label)
             total_loss += batch_loss
 
-    return total_loss/round
+    return total_loss/ len(loader)
 
 
 def main(args):
@@ -171,9 +171,9 @@ if __name__ == '__main__':
     # train args
     parser.add_argument(
         '--exp-name', default="M1v2_albert_chinese_large_v1", type=str)
-    parser.add_argument('--batch-size', default=8, type=int)
+    parser.add_argument('--batch-size', default=16, type=int)
     parser.add_argument('--epoch', default=30, type=int)
-    parser.add_argument('--learning-rate', default=1e-5, type=float)
+    parser.add_argument('--learning-rate', default=2e-5, type=float)
     parser.add_argument('--weight-decay', default=0.001, type=float)
     parser.add_argument(
         '--model-type', default='voidful/albert_chinese_large', type=str)
