@@ -1,15 +1,21 @@
-# NL2SQL Demo Page
-+ Frontend: HTML, CSS, JaveScript, Bootstrap, kendo, AJAX
-+ Backend: Flask, MariaDB  
-+ AI Model: PyTorch
+# NL2SQL
+NL2SQL is a website that allows users to input natural language and convert them into SQL commands, and you can also execute SQL commands to confirm the results.
 
-### MainPage
-![](https://github.com/eric88525/NL2SQL_Service/blob/main/demo_pictures/demo2.png)
-
-
-### Input query and get SQL command
-![](https://github.com/eric88525/NL2SQL_Service/blob/main/demo_pictures/demo1.png)
+# Build up
+```
+docker compose up
+```
 
 
-### Execute SQL command
-![](https://github.com/eric88525/NL2SQL_Service/blob/main/demo_pictures/demo1-1.png)
+# Demo
+Open http://localhost:5000 to view the main page
+--
+![](./demo_pictures/main.png)
+
+Enter query, click convert button to get sql command
+--
+![](./demo_pictures/convert.png)
+
+Execute SQL command
+--
+![](./demo_pictures/result.png)
