@@ -1,11 +1,13 @@
 import mysql.connector
 
+
 class DBService():
     """The service that can interact with the database
 
     Attributes:
         config: connect information
     """
+
     def __init__(self, config):
         self.config = config
 
@@ -20,11 +22,11 @@ class DBService():
         cursor = maxdb.cursor()
         return maxdb, cursor
 
-    def get_table(self, table_name):
+    def get_table(self, table_name: str):
         """Fetch table from database
 
         Args:
-            table_name: the table name in database
+            table_name (str): the table name
 
         Returns:
             A list format table. Each item is a row of data.
@@ -43,8 +45,14 @@ class DBService():
 
     def get_table_list(self):
         """Get all the table name in the database"""
+
         maxdb, cursor = self.get_connect()
-        sql = f"SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND TABLE_SCHEMA = '{self.config['database']}';"
+
+        sql = f"SELECT TABLE_NAME \
+                FROM INFORMATION_SCHEMA.TABLES \
+                WHERE TABLE_TYPE='BASE TABLE' AND TABLE_SCHEMA \
+                 = '{self.config['database']}';"
+
         cursor.execute(sql)
         result = cursor.fetchall()
         result = [i[0] for i in result]
@@ -75,14 +83,15 @@ class DBService():
         except:
             return []
 
-    def close_conn(self, maxdb, cursor):
+    @staticmethod
+    def close_conn(maxdb, cursor):
         """Disconned with database"""
         maxdb.close()
         cursor.close()
 
     def get_columns(self, table_name, col_name):
         """Get the enture column from table_name
-        
+
         Returns:
             A list contains column values. For example:
             ['tom', 'jack', 'steve']

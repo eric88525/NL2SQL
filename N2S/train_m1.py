@@ -20,18 +20,14 @@ def get_batch_loss(cond_conn_op_pred, cond_conn_op_label, conds_ops_pred, conds_
     loss_fn = nn.CrossEntropyLoss()
     loss = 0
     loss += loss_fn(cond_conn_op_pred, cond_conn_op_label)*0.33
-
     # conds_ops_pred shape = (batch_size, columns_count, 5)
     loss += loss_fn(conds_ops_pred.view(-1, 5), conds_ops_label.view(-1))*0.33
     # agg_pred shape = (batch_size, columns_count, 7)
     loss += loss_fn(agg_pred.view(-1, 7), agg_label.view(-1))*0.33
-
     return loss
-
 
 def getTime():
     return (datetime.now()+timedelta(hours=8)).strftime("%m/%d %H:%M")
-
 
 def train(args):
 
@@ -153,8 +149,8 @@ if __name__ == '__main__':
                         default='./data/test/test.json', type=str)
 
     # train args
-    parser.add_argument('--exp-name', default="albert_v1", type=str)
-    parser.add_argument('--samples-in-epoch', default=10000, type=int)
+    parser.add_argument('--exp-name', default="M1_fix_albert_chinese_large_v1", type=str)
+    parser.add_argument('--samples-in-epoch', default=5000, type=int)
     parser.add_argument('--batch-size', default=16, type=int)
     parser.add_argument('--epoch', default=30, type=int)
     parser.add_argument('--learning-rate', default=1e-5, type=float)

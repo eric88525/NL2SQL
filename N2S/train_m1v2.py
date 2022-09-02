@@ -18,9 +18,9 @@ def get_batch_loss(cond_conn_op_pred, cond_conn_op_label, conds_ops_pred, conds_
     """Caculate loss of agg, cond_conn_op, conds_ops"""
     loss_fn = nn.CrossEntropyLoss()
     loss = 0
-    loss += loss_fn(cond_conn_op_pred, cond_conn_op_label)*0.33
-    loss += loss_fn(conds_ops_pred.view(-1, 5), conds_ops_label)*0.33
-    loss += loss_fn(agg_pred.view(-1, 7), agg_label)*0.33
+    loss += loss_fn(cond_conn_op_pred, cond_conn_op_label)*0.1
+    loss += loss_fn(conds_ops_pred.view(-1, 5), conds_ops_label)*0.4
+    loss += loss_fn(agg_pred.view(-1, 7), agg_label)*0.5
 
     return loss
 
@@ -166,13 +166,13 @@ if __name__ == '__main__':
 
     # train args
     parser.add_argument(
-        '--exp-name', default="M1v2_albert_chinese_large_v1", type=str)
-    parser.add_argument('--batch-size', default=16, type=int)
+        '--exp-name', default="M1v2_chinese-roberta-wwm-ext_v1", type=str)
+    parser.add_argument('--batch-size', default=64, type=int)
     parser.add_argument('--epoch', default=30, type=int)
-    parser.add_argument('--learning-rate', default=2e-5, type=float)
+    parser.add_argument('--learning-rate', default=5e-5, type=float)
     parser.add_argument('--weight-decay', default=0.001, type=float)
-    parser.add_argument(
-        '--model-type', default='voidful/albert_chinese_large', type=str)
+    parser.add_argument( # voidful/albert_chinese_large
+        '--model-type', default='hfl/chinese-roberta-wwm-ext', type=str)
     parser.add_argument('--device', default=torch.device('cuda:0'), type=int)
     args = parser.parse_args()
 
