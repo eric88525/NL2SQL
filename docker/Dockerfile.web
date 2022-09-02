@@ -1,0 +1,5 @@
+FROM python:3.8.10
+COPY . /nl2sql-service/
+WORKDIR /nl2sql-service
+RUN pip install -r requirements.txt
+CMD python app.py

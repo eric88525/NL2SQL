@@ -3,10 +3,10 @@ import os
 base_url = os.getcwd()
 
 dbConfig = {
-        'host' : '127.0.0.1',
-        'user' : "ericzone",
-        'password': "ericzone",
-        'database' : "nl2sql",
+        'host' : 'n2s-db',
+        'user' : "n2suser",
+        'password': "n2spassword",
+        'database' : "n2s",
 }
 
 modelConfig = { 
