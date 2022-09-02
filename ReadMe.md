@@ -19,7 +19,11 @@ Open http://localhost:5000 to view the main page
 --
 ![](./demo_pictures/main.png)
 
-Enter query, click convert button to get sql command
+Select table
+--
+![](./demo_pictures/tables.png)
+
+Enter query and click convert button to get SQL command
 --
 ![](./demo_pictures/convert.png)
 
