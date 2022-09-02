@@ -42,7 +42,7 @@
           <input type="text" class="form-control" placeholder="Please input query" aria-label="Please input query" aria-describedby="basic-addon2"
             id="questionText">
           <div class="input-group-append">
-            <button class="btn btn-outline-secondary" type="button" id="transSql">進行轉換</button>
+            <button class="btn btn-outline-secondary" type="button" id="transSql">convert</button>
           </div>
         </div>
       </div>
@@ -90,7 +90,7 @@
       ],
     }).data("kendoWindow").center();
 
-    createDropDownList('http://127.0.0.1:5000/api/tablelist');
+    createDropDownList('/api/tablelist');
 
     // select table from database
     $(".tableItem").click(function () {
@@ -101,7 +101,7 @@
       var datas = []
       $.ajax({
         type: "post",
-        url: 'http://127.0.0.1:5000/api/table',
+        url: '/api/table',
         contentType: 'application/json;charset=UTF-8',
         data: JSON.stringify({
           table_name: tableId
@@ -170,7 +170,7 @@
     $("#transSql").click(function () {
       $.ajax({
         type: "post",
-        url: 'http://127.0.0.1:5000/api/sql',
+        url: '/api/sql',
         contentType: 'application/json;charset=UTF-8',
         data: JSON.stringify({
           question: $("#questionText").val(),
@@ -190,7 +190,7 @@
       var datas = [];
       $.ajax({
         type: "post",
-        url: 'http://127.0.0.1:5000/api/runsql',
+        url: '/api/runsql',
         contentType: 'application/json;charset=UTF-8',
         data: JSON.stringify({
           sql: $("#resultText").val()

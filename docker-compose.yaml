@@ -8,15 +8,19 @@ services:
       MARIADB_ROOT_PASSWORD: rootpassword
       MARIADB_USER: n2suser
       MARIADB_PASSWORD: n2spassword
-      MARIADB_DATABASE: n2s
+      MARIADB_DATABASE: nl2sql
     volumes:
-      - "./docker/create_db.sql:/docker-entrypoint-initdb.d/1.sql"
-  adminer:
+      - ./docker/sqls:/docker-entrypoint-initdb.d
+    networks:
+      - backend
+    ports:
+      - 3306:3306
+  phpmyadmin:
     image: phpmyadmin
     container_name: n2s-phpmyadmin
     restart: always
     ports:
-      - 8080:8080
+      - 8080:80
     environment:
       - PMA_ARBITRARY=1
     networks:
@@ -31,6 +35,5 @@ services:
       - 5000:5000
     networks:
       - backend
-  
 networks:
   backend:
