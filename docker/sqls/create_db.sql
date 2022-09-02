@@ -17,6 +17,7 @@ SET time_zone = "+00:00";
 CREATE DATABASE IF NOT EXISTS `nl2sql` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE `nl2sql`;
 
+SET CHARSET 'utf8mb4';
 -- --------------------------------------------------------
 
 --

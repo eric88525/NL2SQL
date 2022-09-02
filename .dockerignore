@@ -1,4 +1,4 @@
+**/venv
 **/.vscode
 **/__pycache__
-**/saved_models
-**/venv
+**/demo_pictures
