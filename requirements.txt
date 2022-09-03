@@ -6,3 +6,4 @@ sentencepiece==0.1.97
 cn2an==0.5.17
 opencc-python-reimplemented==0.1.6
 tensorboard==2.10.0
+scikit-learn
