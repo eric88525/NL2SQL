@@ -2,6 +2,7 @@ from N2S.sql_model import *
 from .dbSerivce import DBService
 import re
 
+
 class ModelService():
     def __init__(self, model_config, db_config):
         """The service interact with ai model"""
@@ -11,7 +12,7 @@ class ModelService():
             'varchar': 'text',
             'float': 'real'
         }
-        self.model = SQLModel(model_config)
+        self.model = SqlModel(model_config)
 
     def get_sql(self, question: str, table_name: str):
         """Given question and table name, return correspond SQL command"""
@@ -24,9 +25,9 @@ class ModelService():
         question = re.sub('而且', '而且', question)
         question = question.replace('高', '多').replace(
             '低', '少').replace('前面', '少').replace('后面', '多')
-        
+
         print(f"The user question is {question}")
-        
+
         # Fetch table from database
         table = self.dbService.get_table(table_name)
         # get headers from database
@@ -41,5 +42,5 @@ class ModelService():
         }
         # get SQL command from model
         result = self.model.data_to_sql(data)
-        
+
         return result

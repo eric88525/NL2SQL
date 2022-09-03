@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
+from email.policy import default
 import torch
 import torch.nn as nn
 from tqdm import tqdm
@@ -12,15 +13,27 @@ from model.m1v2_model import M1Model
 from dataset.m1v2_dataset import M1Dataset
 from dataset.utils import *
 from torch.utils.data import DataLoader
+from sklearn.metrics import f1_score
 
 
 def get_batch_loss(cond_conn_op_pred, cond_conn_op_label, conds_ops_pred, conds_ops_label, agg_pred, agg_label):
     """Caculate loss of agg, cond_conn_op, conds_ops"""
     loss_fn = nn.CrossEntropyLoss()
+
+    # train agg label counts = [41080, 510, 376, 245, 2902, 1007, 282311]
+    # weight = 1 - label_counts / sum(label_counts)
+    weight = torch.tensor(
+        [0.87492046, 0.99844716, 0.99885516, 0.99925403,
+            0.99116405, 0.99693391, 0.14042523],
+        device=cond_conn_op_pred.device)
+
+    agg_loss_fn = nn.CrossEntropyLoss(weight=weight)
+
     loss = 0
     loss += loss_fn(cond_conn_op_pred, cond_conn_op_label)*0.1
     loss += loss_fn(conds_ops_pred.view(-1, 5), conds_ops_label)*0.4
-    loss += loss_fn(agg_pred.view(-1, 7), agg_label)*0.5
+
+    loss += agg_loss_fn(agg_pred.view(-1, 7), agg_label)*0.5
 
     return loss
 
@@ -51,7 +64,11 @@ def train(args):
     optimizer = torch.optim.AdamW(parameters, lr=args.learning_rate,
                                   weight_decay=args.weight_decay)
 
-    minloss = 100000
+    if args.save_by == 'loss':
+        bestscore = 10000
+    elif args.save_by == 'f1':
+        bestscore = 0
+
     steps = 0
 
     # 1 epoch = train model with epoch_samples batchs
@@ -84,18 +101,83 @@ def train(args):
 
         writer.add_scalar("Train/epoch", epoch_loss /
                           len(train_loader), epoch)
-        val_loss = test(model, val_loader)
-        writer.add_scalar("Val/epoch", val_loss, epoch)
 
-        if val_loss < minloss:
-            minloss = val_loss
-            best_model = copy.deepcopy(model.state_dict())
-            print(f"save model at epoch {epoch}, dev loss: {val_loss:.3f}")
-            torch.save(best_model, f'saved_models/{args.exp_name}')
+        if args.save_by == 'loss':  # save model by validation loss
+            val_loss = test(model, val_loader)
+            writer.add_scalar("Val/epoch", val_loss, epoch)
+
+            if val_loss < bestscore:  # loss smaller is better
+                bestscore = val_loss
+                best_model = copy.deepcopy(model.state_dict())
+                torch.save(best_model, f'saved_models/{args.exp_name}')
+                print(f"save model at epoch {epoch}, dev loss: {val_loss:.3f}")
+
+        elif args.save_by == 'f1':  # save model by validation f1 score
+            val_f1 = test_f1(model, val_loader)
+            writer.add_scalar("Val/conn_f1", val_f1['conn_f1'], epoch)
+            writer.add_scalar("Val/ops_f1", val_f1['ops_f1'], epoch)
+            writer.add_scalar("Val/agg_f1", val_f1['agg_f1'], epoch)
+            writer.add_scalar("Val/mean_f1", val_f1['mean_f1'],  epoch)
+
+            if val_f1['mean_f1'] > bestscore:  # f1 score bigger is better
+                bestscore = val_f1['mean_f1']
+                best_model = copy.deepcopy(model.state_dict())
+                torch.save(best_model, f'saved_models/{args.exp_name}')
+
+                print(f"save model at epoch {epoch}")
+                print(f"agg_f1: {val_f1['agg_f1']:.3f}")
+                print(f"conn_f1: {val_f1['conn_f1']:.3f}")
+                print(f"ops_f1: {val_f1['ops_f1']:.3f}")
+                print(f"mean_f1: {val_f1['mean_f1']:.3f}")
+
+def test_f1(model, loader):
+    """Test and return f1 score"""
+
+    model.eval()
+    # condition connect operators: ['', 'AND', 'OR']
+    conn_f1, conn_pred_list, conn_label_list = 0, [], []
+
+    # condition operator: ['>', '<', '=', '!=', '']
+    ops_f1, ops_pred_list, ops_label_list = 0, [], []
+
+    # agg: ['', 'AVG', 'MAX', 'MIN', 'COUNT', 'SUM', 'not select this column']
+    agg_f1, agg_pred_list, agg_label_list = 0, [], []
+
+    with torch.no_grad():
+        for batch in loader:
+            for k in ['input_ids', 'attention_mask', 'token_type_ids', 'header_idx']:
+                batch[k] = batch[k].to(next(model.parameters()).device)
+
+            # pred
+            conn_pred, ops_pred, agg_pred = model(**batch)
+
+            conn_pred_list.extend(conn_pred.argmax(
+                dim=-1).cpu().numpy().tolist())
+            ops_pred_list.extend(ops_pred.argmax(
+                dim=-1).cpu().numpy().tolist())
+            agg_pred_list.extend(agg_pred.argmax(
+                dim=-1).cpu().numpy().tolist())
+
+            conn_label_list.extend(batch['cond_conn_op'].tolist())
+            ops_label_list.extend(batch['conds_ops'].tolist())
+            agg_label_list.extend(batch['agg'].tolist())
+
+    conn_f1 = f1_score(conn_label_list, conn_pred_list, average='macro')
+    ops_f1 = f1_score(ops_label_list, ops_pred_list, average='macro')
+    agg_f1 = f1_score(agg_label_list, agg_pred_list, average='macro')
+
+    f1_scores = {
+        'conn_f1': conn_f1,
+        'ops_f1': ops_f1,
+        'agg_f1': agg_f1,
+        'mean_f1': (conn_f1 + ops_f1 + agg_f1) / 3,
+    }
+
+    return f1_scores
 
 
 def test(model, loader):
-    """Test"""
+    """Test and return loss"""
 
     model.eval()
     total_loss = 0
@@ -104,7 +186,7 @@ def test(model, loader):
         for batch in loader:
 
             for k in batch.keys():
-                batch[k] = batch[k].to(args.device)
+                batch[k] = batch[k].to(next(model.parameters()).device)
 
             # label
             cond_conn_op_label, agg_label, conds_ops_label = batch[
@@ -116,7 +198,7 @@ def test(model, loader):
                 cond_conn_op_pred, cond_conn_op_label, conds_ops_pred, conds_ops_label, agg_pred, agg_label)
             total_loss += batch_loss
 
-    return total_loss/ len(loader)
+    return total_loss / len(loader)
 
 
 def main(args):
@@ -136,11 +218,18 @@ def main(args):
                                  pin_memory=True, collate_fn=lambda b: M1Dataset.collate_fn(b, test_data.tokenizer))
         model = M1Model(args.model_type).to(args.device)
         model.load_state_dict(torch.load(f'saved_models/{args.exp_name}'))
-        test_loss = test(model, test_loader)
-        writer.add_scalar("Test/epoch", test_loss)
+
+        if args.save_by == 'loss':
+            test_loss = test(model, test_loader)
+            writer.add_scalar("Test/epoch", test_loss)
+        elif args.save_by == 'f1':
+            test_f1 = test_f1(model, test_loader)
+            writer.add_text(f"agg_f1: {test_f1['agg_f1']:.3f}, \
+                    conn_f1: {test_f1['conn_f1']:.3f}, \
+                    ops_f1: {test_f1['ops_f1']:.3f}, \
+                    mean_f1: {test_f1['mean_f1']:.3f}")
 
 
-# In[ ]:
 if __name__ == '__main__':
 
     seed_all(2022)
@@ -166,17 +255,19 @@ if __name__ == '__main__':
 
     # train args
     parser.add_argument(
-        '--exp-name', default="M1v2_chinese-roberta-wwm-ext_v1", type=str)
-    parser.add_argument('--batch-size', default=64, type=int)
+        '--save_by', choices=['loss', 'f1'], default='f1', type=str)
+    parser.add_argument(
+        '--exp_name', default="M1v2_chinese-roberta-wwm-ext_byf1", type=str)
+    parser.add_argument('--batch_size', default=64, type=int)
     parser.add_argument('--epoch', default=30, type=int)
-    parser.add_argument('--learning-rate', default=5e-5, type=float)
-    parser.add_argument('--weight-decay', default=0.001, type=float)
-    parser.add_argument( # voidful/albert_chinese_large
-        '--model-type', default='hfl/chinese-roberta-wwm-ext', type=str)
+    parser.add_argument('--learning_rate', default=5e-5, type=float)
+    parser.add_argument('--weight_decay', default=0.001, type=float)
+    parser.add_argument(  # voidful/albert_chinese_large
+        '--model_type', default='hfl/chinese-roberta-wwm-ext', type=str)
     parser.add_argument('--device', default=torch.device('cuda:0'), type=int)
     args = parser.parse_args()
 
     writer = SummaryWriter(log_dir=f"./runs/{args.exp_name}")
-
     writer.add_text('args', str(args))
+
     main(args)

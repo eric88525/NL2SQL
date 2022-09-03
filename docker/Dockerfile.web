@@ -1,5 +1,5 @@
 FROM pytorch/pytorch:1.12.0-cuda11.3-cudnn8-runtime
 COPY . /nl2sql-service/
 WORKDIR /nl2sql-service
-RUN pip install -r requirements.txt
+RUN pip install -r /nl2sql-service/docker/demo_requirements.txt
 CMD python app.py

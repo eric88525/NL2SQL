@@ -11,7 +11,7 @@ from .dataset.utils import *
 from collections import namedtuple
 
 
-class SQLModel():
+class SqlModel():
     """The class combine model 1 output and model 2 output to generate SQL commmand"""
 
     def __init__(self, config):
