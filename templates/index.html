@@ -20,6 +20,7 @@
 </head>
 
 <body>
+  <script src="{{ url_for('static', filename='js/kendo.all.min.js') }}"></script>
 
   <div id="floatWindow">
     <div class="container">
@@ -47,7 +48,7 @@
           <input type="text" class="form-control" placeholder="Please input query" aria-label="Please input query" aria-describedby="basic-addon2"
             id="questionText">
           <div class="input-group-append">
-            <button class="btn btn-outline-secondary" type="button" id="transSql">convert</button>
+            <button class="btn btn-primary" type="button" id="transSql"  onclick="getSql()" >convert</button>
           </div>
         </div>
       </div>
@@ -67,7 +68,7 @@
           <textarea class="form-control" aria-label="With textarea" id="resultText"></textarea>
 
           <div class="input-group-append">
-            <button class="btn btn-outline-secondary" type="button" id="runSql"> Execute SQL command</button>
+            <button class="btn btn-success" type="button" onclick="runSql()"> Execute SQL command</button>
           </div>
         </div>
       </div>
@@ -78,6 +79,5 @@
 
 </body>
 
-<script src="{{ url_for('static', filename='js/kendo.all.min.js') }}"></script>
 
 </html>
