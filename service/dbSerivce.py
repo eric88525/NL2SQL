@@ -10,6 +10,13 @@ class DBService():
 
     def __init__(self, config):
         self.config = config
+        
+        # test connect
+        try:
+            maxdb, cursor = self.get_connect()
+            self.close_conn(maxdb, cursor)
+        except:
+            raise Exception("Connect to database failed!")
 
     def get_connect(self):
         """Get connnection with database"""

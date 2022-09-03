@@ -9,15 +9,6 @@ app = Flask(__name__)
 app.config["DEBUG"] = True
 app.config["JSON_AS_ASCII"] = False
 
-testing = False
-
-dbService = DBService(dbConfig)
-modelService = ModelService(modelConfig, dbConfig)
-
-tw2s = OpenCC('tw2s')
-s2t = OpenCC('s2t')
-
-
 @app.route("/")
 def index():
     """The main page"""
@@ -90,4 +81,18 @@ def run_sql():
 
 
 if __name__ == '__main__':
+    try:
+        dbService = DBService(dbConfig)
+    except:
+        print("Database connection error")
+        exit()
+    try:
+        modelService = ModelService(modelConfig, dbConfig)
+    except:
+        print("Model loading error")
+        exit()
+
+    tw2s = OpenCC('tw2s')
+    s2t = OpenCC('s2t')
+
     app.run(host='0.0.0.0', port=5000)
