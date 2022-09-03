@@ -156,16 +156,16 @@ if __name__ == "__main__":
                         default='./data/test/test.json', type=str)
 
     parser.add_argument(
-        '--exp-name', default="M2_albert_chinese_large_v1", type=str)
-    parser.add_argument('--batch-size', default=8, type=int)
+        '--exp_name', default="M2_albert_chinese_large_v1", type=str)
+    parser.add_argument('--batch_size', default=8, type=int)
     # check_num
     parser.add_argument('--epoch', default=20, type=int)
-    parser.add_argument('--learning-rate', default=2e-5, type=float)
-    parser.add_argument('--weight-decay', default=0.001, type=float)
+    parser.add_argument('--learning_rate', default=2e-5, type=float)
+    parser.add_argument('--weight_decay', default=0.001, type=float)
 
     # model_type = 'hfl/chinese-bert-wwm'  'hfl/chinese-roberta-wwm-ext'  'hfl/chinese-roberta-wwm-ext-large'
     parser.add_argument(
-        '--model-type', default='voidful/albert_chinese_large', type=str)
+        '--model_type', default='voidful/albert_chinese_large', type=str)
 
     parser.add_argument('--device', default=torch.device('cuda:0'), type=int)
     args = parser.parse_args()

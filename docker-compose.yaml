@@ -26,7 +26,7 @@ services:
     networks:
       - backend
   web:
-    build: 
+    build:
       context: .
       dockerfile: ./docker/Dockerfile.web
     restart: always

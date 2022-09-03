@@ -151,7 +151,6 @@ class M1Dataset(Dataset):
         batch_conds_ops = []
 
         for batch_idx, data in enumerate(batch):
-
             sql = data["sql"]
             agg = torch.zeros(valid_header[batch_idx].sum().item(), dtype=torch.long).fill_(6)
             conds_ops = torch.full_like(agg, 4, dtype=torch.long)

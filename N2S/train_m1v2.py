@@ -206,29 +206,8 @@ def main(args):
     if not os.path.exists('saved_models'):
         os.makedirs('saved_models')
 
-    mode = ('train', 'test')
-
-    if 'train' in mode:
-        train(args)
-
-    if 'test' in mode:
-        test_data = M1Dataset(args.test_table_file,
-                              args.test_data_file, args.model_type)
-        test_loader = DataLoader(test_data, batch_size=args.batch_size, shuffle=False,
-                                 pin_memory=True, collate_fn=lambda b: M1Dataset.collate_fn(b, test_data.tokenizer))
-        model = M1Model(args.model_type).to(args.device)
-        model.load_state_dict(torch.load(f'saved_models/{args.exp_name}'))
-
-        if args.save_by == 'loss':
-            test_loss = test(model, test_loader)
-            writer.add_scalar("Test/epoch", test_loss)
-        elif args.save_by == 'f1':
-            test_f1 = test_f1(model, test_loader)
-            writer.add_text(f"agg_f1: {test_f1['agg_f1']:.3f}, \
-                    conn_f1: {test_f1['conn_f1']:.3f}, \
-                    ops_f1: {test_f1['ops_f1']:.3f}, \
-                    mean_f1: {test_f1['mean_f1']:.3f}")
-
+    print('start training...')
+    train(args)
 
 if __name__ == '__main__':
 
@@ -255,7 +234,7 @@ if __name__ == '__main__':
 
     # train args
     parser.add_argument(
-        '--save_by', choices=['loss', 'f1'], default='f1', type=str)
+        '--save_by', choices=['loss', 'f1'], type=str)
     parser.add_argument(
         '--exp_name', default="M1v2_chinese-roberta-wwm-ext_byf1", type=str)
     parser.add_argument('--batch_size', default=64, type=int)
@@ -265,6 +244,7 @@ if __name__ == '__main__':
     parser.add_argument(  # voidful/albert_chinese_large
         '--model_type', default='hfl/chinese-roberta-wwm-ext', type=str)
     parser.add_argument('--device', default=torch.device('cuda:0'), type=int)
+
     args = parser.parse_args()
 
     writer = SummaryWriter(log_dir=f"./runs/{args.exp_name}")
