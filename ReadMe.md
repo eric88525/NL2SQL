@@ -5,8 +5,8 @@ NL2SQL is a website that allows users to input natural language and convert them
 Download models from [drive](https://drive.google.com/drive/folders/1GC0JHVyxUzjJQrjeL3Fd1H7k9fvcyKjy?usp=sharing) and place it under N2S/saved_models
 ```
 N2S/saved_models
-├─M1Model
-└─M2Model
+├─m1_model
+└─m2_model
 ```
 Build environment
 ```
