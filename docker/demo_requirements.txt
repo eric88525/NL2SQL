@@ -1,5 +1,4 @@
 Flask==2.1.1
-torch==1.12.1
 transformers==4.18.0
 mysql-connector-python==8.0.30
 sentencepiece==0.1.97
