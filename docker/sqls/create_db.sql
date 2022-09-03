@@ -211,25 +211,23 @@ INSERT INTO `student` (`学生姓名`, `国文成绩`, `英文成绩`, `数学�
 
 DROP TABLE IF EXISTS `theater`;
 CREATE TABLE `theater` (
-  `序号` float DEFAULT NULL,
-  `院线公司` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `2018年票房（亿）` float DEFAULT NULL,
-  `相关上市公司` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL
+  `影片名称` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `周票房（万）` float NOT NULL,
+  `票房占比（%）` float NOT NULL,
+  `场均人次` float NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- 資料表新增資料前，先清除舊資料 `theater`
---
-
 TRUNCATE TABLE `theater`;
---
--- 傾印資料表的資料 `theater`
---
 
-INSERT INTO `theater` (`序号`, `院线公司`, `2018年票房（亿）`, `相关上市公司`) VALUES
-(21, '武汉天河影业有限公司', 5.89, '/'),
-(22, '深圳市深影橙天院线有限公司', 4.79, '/'),
-(23, '湖南潇湘影视传播有限责仼公司', 4.64, '/'),
-(24, '上海大光明院线有限公司', 4.61, '/'),
-(25, '北京长城沃美电影院线有限公司', 4.44, '/');
+INSERT INTO `theater` (`影片名称`, `周票房（万）`, `票房占比（%）`, `场均人次`) VALUES
+('死侍2：我爱我家', 10637.3, 25.8, 5.0),
+('白蛇：缘起', 10503.8, 25.4, 7.0),
+('大黄蜂', 6426.6, 15.6, 6.0),
+('密室逃生', 5841.4, 14.2, 6.0),
+('“大”人物', 3322.9, 8.1, 5.0),
+('家和万事惊', 635.2, 1.5, 25.0),
+('钢铁飞龙之奥特曼崛起', 595.5, 1.4, 3.0),
+('海王', 500.3, 1.2, 5.0),
+('一条狗的回家路', 360.0, 0.9, 4.0),
+('掠食城市', 356.6, 0.9, 3.0);
 COMMIT;
