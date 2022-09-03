@@ -218,7 +218,7 @@ class SqlModel():
                     conn_op = 'AND'
 
                 for cond_, p in possible_cond:
-                    if p < 0.4:
+                    if p < 0.2:
                         continue
                     if len(WHERE_COND):
                         WHERE_COND += f"{conn_op} {cond_}"
