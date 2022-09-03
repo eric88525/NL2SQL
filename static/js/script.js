@@ -35,8 +35,11 @@ $(document).ready(function () {
         }
       });
       table = createTable(columns, datas);
-      $("#demoTable table").remove();
+
+      let demoTable = document.getElementById('demoTable');
+      demoTable.removeChild(demoTable.childNodes[0]);
       $('#demoTable').append(table);
+
     })
 
     function createDropDownList(url) {
@@ -63,11 +66,13 @@ $(document).ready(function () {
     function createTable(columns, datas) {
       let headers = [];
       let table = document.createElement('table');
+      table.classList.add('table');
+      table.classList.add('table-hover');
+
       let thead = document.createElement('thead');
-      thead.classList.add('thead-dark');
+      thead.classList.add('table-dark');
+
       let tbody = document.createElement('tbody');
-      tbody.classList.add('table');
-      table.classList.add('table-striped');
     
       table.appendChild(thead);
       table.appendChild(tbody);
