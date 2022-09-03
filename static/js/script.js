@@ -14,13 +14,16 @@ $(document).ready(function () {
 
     createDropDownList('/api/tablelist');
 
-    // select table from database
-    $(".tableItem").click(function () {
+    // select and show table from database
+    function selectTable(tableId) {
+
       // display table name
-      $("#tableName").text(this.id);
-      tableId = this.id;
+      let tableName = document.getElementById('tableName');
+      tableName.innerHTML = tableId;
+
       var columns = []
       var datas = []
+
       $.ajax({
         type: "post",
         url: '/api/table',
@@ -34,13 +37,13 @@ $(document).ready(function () {
             datas = data.datas
         }
       });
-      table = createTable(columns, datas);
+      var table = createTable(columns, datas);
 
       let demoTable = document.getElementById('demoTable');
       demoTable.removeChild(demoTable.childNodes[0]);
       $('#demoTable').append(table);
 
-    })
+    }
 
     function createDropDownList(url) {
       content = []
@@ -53,11 +56,24 @@ $(document).ready(function () {
           content = data;
         }
       });
-      $("#tableList a").remove();
+
+      let tableList = document.getElementById('tableList');
+
+      tableList.removeChild(tableList.childNodes[0]);
+      ul = document.createElement('ul');
+      ul.classList.add('dropdown-menu');
+      ul.classList.add('dropdown-menu-dark');
+      tableList.appendChild(ul);
+
       content.forEach(element => {
-        //console.log(element)
-        var row = $("<a class='tableItem'   href='#' id='" + element.Value + "'></a>").addClass("dropdown-item").text(element.Text)
-        $("#tableList").append(row)
+        var li = document.createElement('li');
+        var a = document.createElement('a');
+        a.classList.add('dropdown-item');
+        a.innerHTML = element.Value;
+        // send table name to selectTable function
+        a.addEventListener('click', selectTable.bind(null, element.Value));
+        li.appendChild(a);
+        ul.appendChild(li);
       });
     }
 
@@ -101,39 +117,6 @@ $(document).ready(function () {
       });
       return table
     }
-
-    // create table object
-    /*
-    function createTable(columns, datas) {
-
-      var headers = [];
-
-      var thead = $("<thead></thead>").addClass('thead-dark ');
-      var table = $('<table></table>').addClass('table table-striped');
-      var body = $('<tbody></tbody>');
-
-      tr = $('<tr></tr>');
-      columns.forEach(element => {
-        var row = $("<th></th>").text(element.Name);
-        tr.append(row);
-        headers.push(element.Index)
-      });
-      thead.append(tr)
-
-      datas.forEach(element => {
-        var row = $("<tr></tr>");
-        headers.forEach(key => {
-          var rowData = $('<td></td>').addClass('bar').text(element[key]);
-          row.append(rowData);
-        });
-        body.append(row);
-      });
-
-      table.append(thead);
-      table.append(body);
-      return table
-    }
-    */
 
     // post query to backend and show result on resultText
     $("#transSql").click(function () {
