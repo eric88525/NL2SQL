@@ -21,10 +21,6 @@ class ModelService():
         question = re.sub('<', '小于', question)
         question = re.sub('>', '大于', question)
         question = re.sub('=', '等于', question)
-        question = re.sub('而且', '且', question)
-        question = re.sub('而且', '而且', question)
-        question = question.replace('高', '多').replace(
-            '低', '少').replace('前面', '少').replace('后面', '多')
 
         print(f"The user question is {question}")
 
