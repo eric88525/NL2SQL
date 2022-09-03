@@ -86,11 +86,11 @@ if __name__ == '__main__':
     except:
         print("Database connection error")
         exit()
-    try:
-        modelService = ModelService(modelConfig, dbConfig)
-    except:
-        print("Model loading error")
-        exit()
+    # try:
+    #     modelService = ModelService(modelConfig, dbConfig)
+    # except:
+    #     print("Model loading error")
+    #     exit()
 
     tw2s = OpenCC('tw2s')
     s2t = OpenCC('s2t')
