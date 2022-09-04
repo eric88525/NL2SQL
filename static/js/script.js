@@ -71,10 +71,9 @@ function showTable(tableId) {
   .then(function (response) {
     let table = createTable(response.columns, response.datas);
     let demoTable = document.getElementById('demoTable');
-    demoTable.removeChild(demoTable.childNodes[0]); demoTable.appendChild(table);
+    demoTable.replaceChild(table, demoTable.childNodes[0]);
   });
 }
-
 
 // create table
 // refer from https://www.delftstack.com/zh-tw/howto/javascript/create-table-javascript/
@@ -134,7 +133,6 @@ function runSql() {
       // popout modal
       table = createTable(response.columns, response.datas);
       let modalTable = document.getElementById('modalTable');
-      modalTable.removeChild(modalTable.childNodes[0]);
-      modalTable.appendChild(table);
+      modalTable.replaceChild(table, modalTable.childNodes[0]);
   });
 };
