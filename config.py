@@ -3,7 +3,7 @@ import os
 base_url = os.getcwd()
 
 dbConfig = {
-        'host' : 'localhost',
+        'host' : 'db',
         'user' : "n2suser",
         'password': "n2spassword",
         'database' : "nl2sql",

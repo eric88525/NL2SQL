@@ -25,15 +25,15 @@ services:
       - PMA_ARBITRARY=1
     networks:
       - backend
-  # web:
-  #   build:
-  #     context: .
-  #     dockerfile: ./docker/Dockerfile.web
-  #   restart: always
-  #   container_name: n2s-web
-  #   ports:
-  #     - 5000:5000
-  #   networks:
-  #     - backend
+  web:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.web
+    restart: always
+    container_name: n2s-web
+    ports:
+      - 5000:5000
+    networks:
+      - backend
 networks:
   backend:
